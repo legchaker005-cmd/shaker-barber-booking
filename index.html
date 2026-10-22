@@ -41,11 +41,11 @@
                     <div class="space-y-4 text-sm">
                         <div class="flex justify-between items-center text-gray-400">
                             <span>الخدمة:</span>
-                            <span id="summaryService" class="font-bold text-white">تدرج احترافي</span>
+                            <span id="summaryService" class="font-bold text-white">تدرج احترافي Fade</span>
                         </div>
                         <div class="flex justify-between items-center text-gray-400">
                             <span>التاريخ والوقت:</span>
-                            <span id="summaryDateTime" class="font-bold gold-text">اليوم | 06:00 م</span>
+                            <span id="summaryDateTime" class="font-bold gold-text">اليوم | 18:00 م</span>
                         </div>
                         <div class="border-t border-zinc-800 pt-4 flex justify-between items-center">
                             <span class="text-base font-bold">الإجمالي:</span>
@@ -67,7 +67,7 @@
                 <div class="card-dark p-6 rounded-2xl space-y-5">
                     <div class="flex items-center gap-2">
                         <span class="w-6 h-6 rounded-full gold-btn text-xs flex items-center justify-center font-bold">2</span>
-                        <h2 class="text-base font-bold text-white">حدد التاريخ والوقت (من 6 مساءً إلى 11 ليلاً)</h2>
+                        <h2 class="text-base font-bold text-white">حدد التاريخ والوقت (فارق 55 دقيقة بين كل حجز)</h2>
                     </div>
 
                     <!-- Day Quick Select -->
@@ -84,7 +84,7 @@
                     <!-- Available Time Slots Grid -->
                     <div>
                         <label class="block text-xs text-gray-400 mb-2">اختر التوقيت المتاح:</label>
-                        <div id="timeSlotsGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                        <div id="timeSlotsGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                             <!-- Slot buttons injected via JS -->
                         </div>
                     </div>
@@ -103,9 +103,9 @@
                         <div>
                             <label class="block text-xs text-gray-400 mb-1.5">اختر الخدمة المطلوبة *</label>
                             <select id="serviceName" required onchange="updateSummary()" class="w-full input-dark rounded-xl px-4 py-3 text-sm">
-                                <option value="تدرج احترافي" data-price="350">تدرج احترافي - 350 ل.ت</option>
-                                <option value="حلاقة شعر + ذقن" data-price="450">حلاقة شعر + ذقن - 450 ل.ت</option>
-                                <option value="حلاقة كاملة + سشوار" data-price="500">حلاقة كاملة + سشوار - 500 ل.ت</option>
+                                <option value="تدرج احترافي Fade" data-price="350">تدرج احترافي Fade - 350 ل.ت</option>
+                                <option value="قص شعر عصري" data-price="250">قص شعر عصري - 250 ل.ت</option>
+                                <option value="تحديد وحلاقة اللحية" data-price="150">تحديد وحلاقة اللحية - 150 ل.ت</option>
                             </select>
                         </div>
 
@@ -138,7 +138,7 @@
                     <span>🔄</span> تحديث المواعيد
                 </button>
             </div>
-            <div id="statusGrid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+            <div id="statusGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
                 <!-- Status badges injected dynamically -->
             </div>
         </div>
@@ -146,7 +146,8 @@
     </div>
 
     <script>
-        const allSlots = ["18:00", "18:45", "19:30", "20:15", "21:00", "21:45", "22:30"];
+        // الأوقات الجديدة بفارق 55 دقيقة
+        const allSlots = ["18:00", "18:55", "19:50", "20:45", "21:40", "22:35"];
         let selectedTime = "18:00";
         let selectedDayLabel = "اليوم";
 
@@ -169,7 +170,6 @@
                 selectedDayLabel = "بعد غد";
             }
 
-            // تنسيق التاريخ بدقة بتوقيت الجهاز المحلي YYYY-MM-DD
             const year = now.getFullYear();
             const month = String(now.getMonth() + 1).padStart(2, '0');
             const day = String(now.getDate()).padStart(2, '0');
@@ -192,7 +192,7 @@
             const grid = document.getElementById("timeSlotsGrid");
             const statusGrid = document.getElementById("statusGrid");
 
-            grid.innerHTML = "<p class='col-span-4 text-xs text-gray-500 py-2'>جاري جلب المواعيد...</p>";
+            grid.innerHTML = "<p class='col-span-3 text-xs text-gray-500 py-2'>جاري جلب المواعيد...</p>";
             statusGrid.innerHTML = "";
 
             try {
@@ -202,7 +202,7 @@
                 grid.innerHTML = "";
 
                 if (data.is_blocked) {
-                    grid.innerHTML = `<div class='col-span-4 bg-red-900/20 border border-red-500/40 text-red-400 p-3 rounded-xl text-xs font-bold text-center'>⚠️ اليوم مغلق (${data.blocked_reason || 'عطلة'})</div>`;
+                    grid.innerHTML = `<div class='col-span-3 bg-red-900/20 border border-red-500/40 text-red-400 p-3 rounded-xl text-xs font-bold text-center'>⚠️ اليوم مغلق (${data.blocked_reason || 'عطلة'})</div>`;
                     return;
                 }
 
@@ -237,7 +237,7 @@
                 updateSummary();
 
             } catch (err) {
-                grid.innerHTML = "<p class='col-span-4 text-xs text-red-400'>خطأ في تحميل المواعيد</p>";
+                grid.innerHTML = "<p class='col-span-3 text-xs text-red-400'>خطأ في تحميل المواعيد</p>";
             }
         }
 
