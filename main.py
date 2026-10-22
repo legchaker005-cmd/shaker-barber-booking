@@ -26,6 +26,9 @@ class BlockDayRequest(BaseModel):
     blocked_date: str
     reason: Optional[str] = "عطلة"
 
+class AddPointRequest(BaseModel):
+    client_phone: str
+
 # Helper function to check admin PIN
 def verify_admin_pin(x_admin_pin: str = Header(None)):
     if x_admin_pin != "1234":
@@ -36,7 +39,6 @@ def verify_admin_pin(x_admin_pin: str = Header(None)):
 
 @app.get("/api/availability/{booking_date}")
 def get_availability(booking_date: str):
-    # 1. Check if date is blocked
     blocked = supabase.table("blocked_days").select("*").eq("blocked_date", booking_date).execute()
     if blocked.data:
         return {
@@ -45,7 +47,6 @@ def get_availability(booking_date: str):
             "booked_times": []
         }
     
-    # 2. Get booked slots
     bookings = supabase.table("bookings").select("booking_time").eq("booking_date", booking_date).execute()
     booked_times = [b["booking_time"] for b in bookings.data] if bookings.data else []
     
@@ -57,12 +58,10 @@ def get_availability(booking_date: str):
 
 @app.post("/api/bookings")
 def create_booking(booking: BookingRequest):
-    # Check if date is blocked
     blocked = supabase.table("blocked_days").select("*").eq("blocked_date", booking.booking_date).execute()
     if blocked.data:
         raise HTTPException(status_code=400, detail="عذراً، هذا اليوم مغلق ولا يمكن الحجز فيه.")
 
-    # Check if time slot is taken
     existing = supabase.table("bookings").select("*")\
         .eq("booking_date", booking.booking_date)\
         .eq("booking_time", booking.booking_time).execute()
@@ -70,12 +69,30 @@ def create_booking(booking: BookingRequest):
     if existing.data:
         raise HTTPException(status_code=400, detail="عذراً، هذا الموعد تم حجزه للتو!")
 
-    # Insert Booking
     res = supabase.table("bookings").insert(booking.dict()).execute()
     if not res.data:
         raise HTTPException(status_code=500, detail="حدث خطأ أثناء حفظ الحجز.")
         
+    # Ensure client has a loyalty card entry
+    card = supabase.table("loyalty_cards").select("*").eq("client_phone", booking.client_phone).execute()
+    if not card.data:
+        supabase.table("loyalty_cards").insert({
+            "client_phone": booking.client_phone,
+            "client_name": booking.client_name,
+            "points": 0,
+            "total_rewards": 0
+        }).execute()
+
     return {"message": "تم تأكيد حجزك بنجاح! ننتظرك في الموعد."}
+
+# --- LOYALTY PUBLIC ENDPOINT ---
+
+@app.get("/api/loyalty/{client_phone}")
+def get_loyalty_card(client_phone: str):
+    res = supabase.table("loyalty_cards").select("*").eq("client_phone", client_phone).execute()
+    if not res.data:
+        raise HTTPException(status_code=404, detail="بطاقة الولاء غير موجودة لهذا الرقم!")
+    return res.data[0]
 
 # --- ADMIN ENDPOINTS ---
 
@@ -83,10 +100,10 @@ def create_booking(booking: BookingRequest):
 def get_admin_stats(authorized: bool = Depends(verify_admin_pin)):
     bookings_res = supabase.table("bookings").select("*").execute()
     blocked_res = supabase.table("blocked_days").select("*").execute()
+    cards_res = supabase.table("loyalty_cards").select("*").execute()
     
     all_bookings = bookings_res.data or []
     
-    # Prices map for revenue calculation
     price_map = {
         "تدرج احترافي Fade": 350,
         "قص شعر عصري": 250,
@@ -98,7 +115,8 @@ def get_admin_stats(authorized: bool = Depends(verify_admin_pin)):
     return {
         "total_bookings": len(all_bookings),
         "total_revenue": total_revenue,
-        "total_blocked_days": len(blocked_res.data or [])
+        "total_blocked_days": len(blocked_res.data or []),
+        "total_clients": len(cards_res.data or [])
     }
 
 @app.get("/api/admin/bookings")
@@ -108,7 +126,6 @@ def get_admin_bookings(authorized: bool = Depends(verify_admin_pin)):
 
 @app.post("/api/admin/manual-booking")
 def create_manual_booking(booking: BookingRequest, authorized: bool = Depends(verify_admin_pin)):
-    # Direct insert for admin
     res = supabase.table("bookings").insert(booking.dict()).execute()
     if not res.data:
         raise HTTPException(status_code=500, detail="فشل إضافة الحجز اليدوي.")
@@ -134,7 +151,40 @@ def unblock_day(blocked_id: int, authorized: bool = Depends(verify_admin_pin)):
     res = supabase.table("blocked_days").delete().eq("id", blocked_id).execute()
     return {"message": "تم إعادة فتح اليوم بنجاح."}
 
-# Static & HTML Routes
+# Admin Loyalty Control: Add Point via QR Scan or Phone
+@app.post("/api/admin/loyalty/add-point")
+def add_loyalty_point(data: AddPointRequest, authorized: bool = Depends(verify_admin_pin)):
+    res = supabase.table("loyalty_cards").select("*").eq("client_phone", data.client_phone).execute()
+    
+    if not res.data:
+        # Create new card if not existing
+        card_data = {"client_phone": data.client_phone, "client_name": "زبون صالون", "points": 1, "total_rewards": 0}
+        supabase.table("loyalty_cards").insert(card_data).execute()
+        return {"message": "تم إنشاء بطاقة جديدة وإضافة النقطة الأولى!", "points": 1, "reward": False}
+    
+    card = res.data[0]
+    new_points = card["points"] + 1
+    total_rewards = card.get("total_rewards", 0)
+    reward_unlocked = False
+
+    if new_points >= 5:
+        new_points = 0
+        total_rewards += 1
+        reward_unlocked = True
+
+    supabase.table("loyalty_cards").update({
+        "points": new_points,
+        "total_rewards": total_rewards
+    }).eq("client_phone", data.client_phone).execute()
+
+    msg = "🎉 مبروك! الزبون أتم 5 نقاط وحصل على حلاقة مجانية!" if reward_unlocked else f"تم إضافة نقطة بنجاح! إجمالي النقاط: {new_points}/5"
+    return {"message": msg, "points": new_points, "reward": reward_unlocked}
+
+# Routes
+@app.get("/loyalty")
+def serve_loyalty_page():
+    return FileResponse("loyalty.html")
+
 @app.get("/admin")
 def serve_admin_page():
     return FileResponse("admin.html")
