@@ -130,7 +130,7 @@
             </div>
         </div>
 
-        <!-- Live Schedule Status Grid (Bottom Status Bar) -->
+        <!-- Live Schedule Status Grid -->
         <div class="card-dark p-5 rounded-2xl space-y-3">
             <div class="flex justify-between items-center">
                 <span class="text-xs font-bold text-gray-400">حالة المواعيد المباشرة:</span>
@@ -177,7 +177,8 @@
 
             if(type === 'today') document.getElementById("btnToday").className = "day-btn px-5 py-2 rounded-xl text-xs font-bold gold-btn";
             if(type === 'tomorrow') document.getElementById("btnTomorrow").className = "day-btn px-5 py-2 rounded-xl text-xs font-bold gold-btn";
-            if(type === 'after') document.getElementById("btnAfter").className = "day-btn px-5 py-2 rounded-xl text-xs font-bold gold-btn";
+            if(type === 'after') document.getElementById("btnAfter"
+).className = "day-btn px-5 py-2 rounded-xl text-xs font-bold gold-btn";
 
             fetchAvailability();
         }
@@ -204,7 +205,6 @@
                 allSlots.forEach(slot => {
                     const isBooked = data.booked_times.includes(slot);
 
-                    // Top Interactive Button
                     const btn = document.createElement("button");
                     btn.type = "button";
                     btn.disabled = isBooked;
@@ -219,7 +219,6 @@
                     }
                     grid.appendChild(btn);
 
-                    // Bottom Status Badge
                     const badge = document.createElement("div");
                     badge.className = "input-dark p-2 rounded-xl flex items-center justify-between text-xs";
                     badge.innerHTML = `
@@ -289,3 +288,17 @@
                 if (res.ok) {
                     alert("🎉 " + result.message);
                     document.getElementById("bookingForm").reset();
+                    fetchAvailability();
+                } else {
+                    alert("❌ " + (result.detail || "تعذر الحجز!"));
+                }
+            } catch (err) {
+                alert("❌ حدث خطأ في الاتصال بالسيرفر!");
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.innerText = "✔️ تأكيد الموعد فوراً";
+            }
+        }
+    </script>
+</body>
+</html>
