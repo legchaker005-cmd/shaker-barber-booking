@@ -3,170 +3,234 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>حلاقة شاكر - حجز المواعيد</title>
+    <title>صالون الحلاقة الاحترافي | حجز المواعيد</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gold: { 400: '#facc15', 500: '#eab308', 600: '#ca8a04', 700: '#a16207' },
+                        dark: { 900: '#0f0f11', 800: '#18181b', 700: '#27272a', 600: '#3f3f46' }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --accent-color: #d4af37;
-            --accent-hover: #b89728;
-            --text-color: #f0f0f0;
-            --text-muted: #aaaaaa;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .container {
-            width: 100%;
-            max-width: 500px;
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-            border: 1px solid rgba(212, 175, 55, 0.2);
-        }
-        h2 {
-            text-align: center;
-            color: var(--accent-color);
-            margin-bottom: 25px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-        input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #333;
-            background-color: #2a2a2a;
-            color: #fff;
-            box-sizing: border-box;
-            font-size: 16px;
-        }
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-        button {
-            width: 100%;
-            padding: 14px;
-            background-color: var(--accent-color);
-            color: #121212;
-            border: none;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        button:hover {
-            background-color: var(--accent-hover);
-        }
-        #message {
-            margin-top: 15px;
-            text-align: center;
-            font-weight: bold;
-        }
+        .gold-gradient { background: linear-gradient(135deg, #facc15 0%, #ca8a04 100%); }
+        .gold-text { background: linear-gradient(135deg, #fef08a 0%, #eab308 50%, #ca8a04 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     </style>
 </head>
-<body>
+<body class="bg-dark-900 text-gray-100 font-sans min-h-screen antialiased">
 
-<div class="container">
-    <h2>✂️ حلاقة شاكر - حجز موعد</h2>
-    <form id="bookingForm">
-        <div class="form-group">
-            <label for="client_name">الاسم الكريم</label>
-            <input type="text" id="client_name" required placeholder="أدخل اسمك الكامل">
+    <!-- Header -->
+    <header class="border-b border-dark-700 bg-dark-900/90 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3 space-x-reverse">
+                <div class="w-10 h-10 rounded-full gold-gradient flex items-center justify-center text-black font-bold">
+                    <i data-lucide="scissors" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-wide gold-text">SHAKER BARBER</h1>
+                    <p class="text-xs text-gray-400">حلاقة احترافية وتدرجات عصرية</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 space-x-reverse bg-dark-800 p-1 rounded-xl border border-dark-700">
+                <button id="btn-user-view" onclick="switchView('user')" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-gold-500 text-black shadow-md flex items-center gap-2">
+                    <i data-lucide="user" class="w-4 h-4"></i><span>حجز موعد</span>
+                </button>
+                <button id="btn-admin-view" onclick="switchView('admin')" class="px-4 py-1.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-white flex items-center gap-2">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>لوحة الحلاق</span>
+                </button>
+            </div>
         </div>
+    </header>
 
-        <div class="form-group">
-            <label for="client_phone">رقم الهاتف</label>
-            <input type="tel" id="client_phone" required placeholder="05xxxxxxxx">
-        </div>
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        <!-- USER BOOKING SECTION -->
+        <section id="user-booking-view" class="space-y-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 space-y-8">
+                    <!-- Step 1 -->
+                    <div class="bg-dark-800 p-6 rounded-2xl border border-dark-700 space-y-4">
+                        <h3 class="text-lg font-bold flex items-center gap-2 text-white">
+                            <span class="w-7 h-7 rounded-full bg-gold-500/20 text-gold-400 flex items-center justify-center text-xs">1</span>
+                            <span>اختر الخدمات المطلوبة</span>
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="services-grid"></div>
+                    </div>
+                    <!-- Step 2 -->
+                    <div class="bg-dark-800 p-6 rounded-2xl border border-dark-700 space-y-4">
+                        <h3 class="text-lg font-bold flex items-center gap-2 text-white">
+                            <span class="w-7 h-7 rounded-full bg-gold-500/20 text-gold-400 flex items-center justify-center text-xs">2</span>
+                            <span>حدد التاريخ والوقت</span>
+                        </h3>
+                        <div class="flex gap-2 overflow-x-auto pb-2" id="date-selector"></div>
+                        <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-2" id="time-slots-grid"></div>
+                    </div>
+                    <!-- Step 3 -->
+                    <div class="bg-dark-800 p-6 rounded-2xl border border-dark-700 space-y-4">
+                        <h3 class="text-lg font-bold flex items-center gap-2 text-white">
+                            <span class="w-7 h-7 rounded-full bg-gold-500/20 text-gold-400 flex items-center justify-center text-xs">3</span>
+                            <span>معلومات الحجز</span>
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="text" id="cust-name" placeholder="الاسم الكامل" class="bg-dark-900 border border-dark-700 rounded-xl px-4 py-2.5 text-sm text-white focus:border-gold-500">
+                            <input type="tel" id="cust-phone" placeholder="05XXXXXXXX" class="bg-dark-900 border border-dark-700 rounded-xl px-4 py-2.5 text-sm text-white focus:border-gold-500" dir="ltr">
+                        </div>
+                        <textarea id="cust-notes" rows="2" placeholder="ملاحظات إضافية (اختياري)" class="w-full bg-dark-900 border border-dark-700 rounded-xl px-4 py-2.5 text-sm text-white focus:border-gold-500"></textarea>
+                    </div>
+                </div>
 
-        <div class="form-group">
-            <label for="service_name">اختر الخدمة</label>
-            <select id="service_name">
-                <option value="قص شعر عادي">قص شعر عادي</option>
-                <option value="تدرج احترافي (Fade)">تدرج احترافي (Fade)</option>
-                <option value="قص شعر + تحديد لحية">قص شعر + تحديد لحية</option>
-                <option value="تحديد لحية فقط">تحديد لحية فقط</option>
-            </select>
-        </div>
+                <!-- Sidebar Summary -->
+                <div class="lg:col-span-1">
+                    <div class="bg-dark-800 p-6 rounded-2xl border border-dark-700 space-y-6 sticky top-24">
+                        <h3 class="text-lg font-bold border-b border-dark-700 pb-3 text-white">ملخص الحجز</h3>
+                        <div class="space-y-3 text-sm">
+                            <div class="flex justify-between text-gray-400"><span>التاريخ والوقت:</span><span id="summary-dt" class="text-gold-400">--</span></div>
+                            <div class="flex justify-between text-base font-bold pt-2 border-t border-dark-700"><span>الإجمالي:</span><span id="summary-total" class="gold-text">0 ل.ت</span></div>
+                        </div>
+                        <button onclick="submitBooking()" class="w-full py-3.5 rounded-xl font-bold text-black gold-gradient shadow-lg">تأكيد الموعد فوراً</button>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-        <div class="form-group">
-            <label for="booking_date">تاريخ الموعد</label>
-            <input type="date" id="booking_date" required>
-        </div>
+        <!-- ADMIN DASHBOARD SECTION -->
+        <section id="admin-dashboard-view" class="space-y-6 hidden">
+            <div class="bg-dark-800 rounded-2xl border border-dark-700 p-6 space-y-4">
+                <div class="flex justify-between items-center border-b border-dark-700 pb-4">
+                    <h3 class="text-lg font-bold text-white">لوحة تحكم الحجوزات</h3>
+                    <button onclick="fetchAdminBookings()" class="px-3 py-1.5 bg-gold-500 text-black rounded-lg text-xs font-bold">تحديث القائمة</button>
+                </div>
+                <table class="w-full text-right text-sm">
+                    <thead class="text-xs text-gray-400 bg-dark-900 border-b border-dark-700">
+                        <tr>
+                            <th class="p-3">الزبون</th>
+                            <th class="p-3">الهاتف</th>
+                            <th class="p-3">الخدمة</th>
+                            <th class="p-3">الموعد</th>
+                            <th class="p-3">الحالة</th>
+                            <th class="p-3 text-center">إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-table-body" class="divide-y divide-dark-700"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
 
-        <div class="form-group">
-            <label for="booking_time">وقت الموعد</label>
-            <input type="time" id="booking_time" required>
-        </div>
+    <script>
+        const SERVICES = [
+            { id: 'haircut', name: 'قص شعر عصري', price: 150 },
+            { id: 'beard', name: 'تحديد وحلاقة اللحية', price: 100 },
+            { id: 'fade', name: 'تدرج احترافي Fade', price: 180 },
+            { id: 'full', name: 'باكيج VIP كامل', price: 320 }
+        ];
+        let selectedService = SERVICES[0];
+        let selectedDate = "اليوم";
+        let selectedTime = "10:00 ص";
 
-        <div class="form-group">
-            <label for="notes">ملاحظات إضافية (اختياري)</label>
-            <textarea id="notes" rows="2" placeholder="تفاصيل إضافية عن القصة المفضلة..."></textarea>
-        </div>
-
-        <button type="submit">تأكيد حجز الموعد</button>
-        <div id="message"></div>
-    </form>
-</div>
-
-<script>
-    document.getElementById('bookingForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const data = {
-            client_name: document.getElementById('client_name').value,
-            client_phone: document.getElementById('client_phone').value,
-            service_name: document.getElementById('service_name').value,
-            booking_date: document.getElementById('booking_date').value,
-            booking_time: document.getElementById('booking_time').value,
-            notes: document.getElementById('notes').value
+        window.onload = () => {
+            renderServices();
+            renderDates();
+            renderTimes();
+            lucide.createIcons();
         };
 
-        const msgDiv = document.getElementById('message');
-        msgDiv.style.color = "#d4af37";
-        msgDiv.innerText = "جاري إرسال الحجز...";
+        function switchView(view) {
+            if (view === 'user') {
+                document.getElementById('user-booking-view').classList.remove('hidden');
+                document.getElementById('admin-dashboard-view').classList.add('hidden');
+            } else {
+                document.getElementById('user-booking-view').classList.add('hidden');
+                document.getElementById('admin-dashboard-view').classList.remove('hidden');
+                fetchAdminBookings();
+            }
+        }
 
-        try {
-            const response = await fetch('/api/bookings', {
+        function renderServices() {
+            document.getElementById('services-grid').innerHTML = SERVICES.map(s => `
+                <div onclick="selectService('${s.id}')" id="svc-${s.id}" class="p-4 rounded-xl border ${s.id === 'haircut' ? 'border-gold-500 bg-gold-500/5' : 'border-dark-700 bg-dark-900'} cursor-pointer flex justify-between items-center">
+                    <div><h4 class="font-bold text-sm text-white">${s.name}</h4><span class="text-xs text-gold-400 font-semibold">${s.price} ل.ت</span></div>
+                </div>
+            `).join('');
+        }
+
+        function selectService(id) {
+            selectedService = SERVICES.find(s => s.id === id);
+            renderServices();
+            document.getElementById('summary-total').innerText = selectedService.price + ' ل.ت';
+        }
+
+        function renderDates() {
+            const days = ['اليوم', 'غداً', 'بعد غد'];
+            document.getElementById('date-selector').innerHTML = days.map((d, i) => `
+                <button onclick="selectedDate='${d}'" class="px-4 py-2 rounded-xl border ${i === 0 ? 'border-gold-500 bg-gold-500 text-black' : 'border-dark-700 bg-dark-900 text-gray-300'} text-xs font-semibold">${d}</button>
+            `).join('');
+        }
+
+        function renderTimes() {
+            const times = ['10:00 ص', '12:00 م', '02:00 م', '04:00 م', '06:00 م', '08:00 م'];
+            document.getElementById('time-slots-grid').innerHTML = times.map((t, i) => `
+                <button onclick="selectedTime='${t}'" class="py-2 rounded-xl border ${i === 0 ? 'border-gold-500 bg-gold-500/20 text-gold-400' : 'border-dark-700 bg-dark-900 text-gray-300'} text-xs font-semibold">${t}</button>
+            `).join('');
+        }
+
+        async function submitBooking() {
+            const data = {
+                client_name: document.getElementById('cust-name').value,
+                client_phone: document.getElementById('cust-phone').value,
+                service_name: selectedService.name,
+                booking_date: selectedDate,
+                booking_time: selectedTime,
+                notes: document.getElementById('cust-notes').value
+            };
+            if(!data.client_name || !data.client_phone) {
+                alert('يرجى ملء الاسم ورقم الهاتف');
+                return;
+            }
+            const res = await fetch('/api/bookings', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(data)
             });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                msgDiv.style.color = "#4CAF50";
-                msgDiv.innerText = "✅ تم حجز موعدك بنجاح!";
-                document.getElementById('bookingForm').reset();
+            if(res.ok) {
+                alert('✅ تم حجز موعدك بنجاح!');
+                document.getElementById('cust-name').value = '';
+                document.getElementById('cust-phone').value = '';
             } else {
-                msgDiv.style.color = "#f44336";
-                msgDiv.innerText = "❌ حدث خطأ: " + (result.detail || "يرجى المحاولة لاحقاً");
+                alert('حدث خطأ ما');
             }
-        } catch (error) {
-            msgDiv.style.color = "#f44336";
-            msgDiv.innerText = "❌ تعذر الاتصال بالسيرفر.";
         }
-    });
-</script>
 
+        async function fetchAdminBookings() {
+            const res = await fetch('/api/bookings');
+            const data = await res.json();
+            const tbody = document.getElementById('admin-table-body');
+            if(data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center p-6 text-gray-500">لا توجد حجوزات مسجلة</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = data.map(b => `
+                <tr class="border-b border-dark-700">
+                    <td class="p-3 font-semibold text-white">${b.client_name}</td>
+                    <td class="p-3 text-xs text-gray-300">${b.client_phone}</td>
+                    <td class="p-3 text-xs text-gray-300">${b.service_name}</td>
+                    <td class="p-3 text-xs text-gold-400">${b.booking_date} - ${b.booking_time}</td>
+                    <td class="p-3"><span class="px-2 py-1 bg-yellow-500/10 text-yellow-400 text-[10px] rounded">${b.status}</span></td>
+                    <td class="p-3 text-center"><button onclick="deleteBooking(${b.id})" class="px-2 py-1 bg-red-500/20 text-red-400 rounded text-xs">حذف</button></td>
+                </tr>
+            `).join('');
+        }
+
+        async function deleteBooking(id) {
+            await fetch(`/api/bookings/${id}`, { method: 'DELETE' });
+            fetchAdminBookings();
+        }
+    </script>
 </body>
 </html>
