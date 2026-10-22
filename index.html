@@ -7,45 +7,47 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Tajawal', sans-serif; background-color: #0b0b0b; color: #f3f4f6; }
-        .gold-bg { background: linear-gradient(135deg, #d4af37 0%, #f3e5ab 50%, #aa7c11 100%); }
-        .gold-text { background: linear-gradient(135deg, #d4af37 0%, #f3e5ab 50%, #aa7c11 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .glass-card { background: rgba(18, 18, 18, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, 0.2); }
+        body { font-family: 'Tajawal', sans-serif; background-color: #0d0d0d; color: #f3f4f6; }
+        .gold-gradient { background: linear-gradient(135deg, #e6c200 0%, #f3e5ab 50%, #b8860b 100%); }
+        .gold-text { background: linear-gradient(135deg, #f5d77f 0%, #d4af37 50%, #aa7c11 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .gold-border-glow { border: 1px solid rgba(212, 175, 55, 0.3); box-shadow: 0 0 15px rgba(212, 175, 55, 0.05); }
+        .card-bg { background-color: #121212; }
     </style>
 </head>
+
 <body class="min-h-screen flex flex-col justify-between p-4 md:p-8">
 
     <!-- Header -->
     <header class="text-center my-6">
-        <h1 class="text-4xl md:text-5xl font-extrabold gold-text tracking-wide mb-2">SHAKER BARBER</h1>
-        <p class="text-gray-400 text-sm md:text-base">احجز موعدك بسهولة وسرعة بلمسة واحدة</p>
+        <h1 class="text-4xl md:text-5xl font-extrabold gold-text tracking-wider mb-2">SHAKER BARBER</h1>
+        <p class="text-gray-400 text-sm md:text-base font-medium">احجز موعدك بسهولة وسرعة بلمسة واحدة</p>
     </header>
 
     <!-- Main Container -->
-    <main class="max-w-xl mx-auto w-full space-y-6">
+    <main class="max-w-md mx-auto w-full">
         
-        <div class="glass-card p-6 md:p-8 rounded-2xl shadow-2xl">
-            <form id="bookingForm" onsubmit="handleBooking(event)" class="space-y-5">
+        <div class="card-bg gold-border-glow p-6 md:p-7 rounded-2xl shadow-2xl">
+            <form id="bookingForm" onsubmit="handleBooking(event)" class="space-y-4">
                 
                 <!-- Client Name -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-300 mb-2">الاسم الكامل</label>
+                    <label class="block text-xs font-bold text-gray-300 mb-1.5">الاسم الكامل</label>
                     <input type="text" id="clientName" required placeholder="أدخل اسمك الكريم"
-                        class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition">
+                        class="w-full bg-[#1a1a1a] border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition text-gray-200">
                 </div>
 
                 <!-- Client Phone -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-300 mb-2">رقم الهاتف</label>
+                    <label class="block text-xs font-bold text-gray-300 mb-1.5">رقم الهاتف</label>
                     <input type="tel" id="clientPhone" required placeholder="05XXXXXXXX"
-                        class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition text-right" dir="ltr">
+                        class="w-full bg-[#1a1a1a] border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition text-gray-200 text-right" dir="ltr">
                 </div>
 
                 <!-- Service Selection -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-300 mb-2">اختر الخدمة</label>
+                    <label class="block text-xs font-bold text-gray-300 mb-1.5">اختر الخدمة</label>
                     <select id="serviceName" required
-                        class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition">
+                        class="w-full bg-[#1a1a1a] border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition text-gray-200">
                         <option value="حلاقة شعر احترافية">حلاقة شعر احترافية - 200 TL</option>
                         <option value="حلاقة شعر + ذقن">حلاقة شعر + ذقن - 300 TL</option>
                         <option value="حلاقة كاملة + تنظيف بشرة">حلاقة كاملة + تنظيف بشرة - 400 TL</option>
@@ -54,29 +56,29 @@
 
                 <!-- Date Picker -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-300 mb-2">تاريخ الحجز</label>
+                    <label class="block text-xs font-bold text-gray-300 mb-1.5">تاريخ الحجز</label>
                     <input type="date" id="bookingDate" required onchange="fetchAvailability()"
-                        class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition">
+                        class="w-full bg-[#1a1a1a] border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition text-gray-200">
                 </div>
 
                 <!-- Time Slot Grid -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-300 mb-2">اختر وقت الموعد (من 18:00 إلى 23:00)</label>
-                    <div id="timeSlotsGrid" class="grid grid-cols-2 md:grid-cols-3 gap-2.5">
-                        <!-- slots loaded dynamically -->
+                    <label class="block text-xs font-bold text-gray-300 mb-1.5">المواعيد المتاحة (من 18:00 إلى 23:00)</label>
+                    <div id="timeSlotsGrid" class="grid grid-cols-3 gap-2 pt-1">
+                        <!-- Loaded dynamically -->
                     </div>
                 </div>
 
                 <!-- Notes -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-300 mb-2">ملاحظات إضافية (اختياري)</label>
+                    <label class="block text-xs font-bold text-gray-300 mb-1.5">ملاحظات إضافية (اختياري)</label>
                     <input type="text" id="notes" placeholder="أي تفاصيل خاصة بالحجز..."
-                        class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition">
+                        class="w-full bg-[#1a1a1a] border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition text-gray-200">
                 </div>
 
                 <!-- Submit Button -->
                 <button type="submit" id="submitBtn"
-                    class="w-full gold-bg text-black font-bold py-4 rounded-xl shadow-lg hover:opacity-90 transition transform active:scale-95 text-base mt-4">
+                    class="w-full gold-gradient text-black font-extrabold py-3.5 rounded-xl shadow-lg hover:brightness-110 transition active:scale-98 text-base mt-2">
                     تأكيد الموعد فوراً ✂️
                 </button>
             </form>
@@ -84,7 +86,7 @@
 
     </main>
 
-    <footer class="text-center text-xs text-gray-500 my-6">
+    <footer class="text-center text-xs text-zinc-600 my-6">
         &copy; 2026 SHAKER BARBER - جميع الحقوق محفوظة
     </footer>
 
@@ -103,7 +105,7 @@
         async function fetchAvailability() {
             const date = document.getElementById("bookingDate").value;
             const grid = document.getElementById("timeSlotsGrid");
-            grid.innerHTML = "<p class='col-span-3 text-center text-gray-400 text-xs py-2'>جاري التحقق من المواعيد...</p>";
+            grid.innerHTML = "<p class='col-span-3 text-center text-zinc-500 text-xs py-2'>جاري جلب المواعيد...</p>";
             selectedTime = null;
 
             if (!date) return;
@@ -115,7 +117,7 @@
                 grid.innerHTML = "";
 
                 if (data.is_blocked) {
-                    grid.innerHTML = `<div class='col-span-3 bg-red-900/30 border border-red-500/50 text-red-300 p-3 rounded-xl text-center text-xs font-bold'>
+                    grid.innerHTML = `<div class='col-span-3 bg-red-950/40 border border-red-800/60 text-red-400 p-2.5 rounded-xl text-center text-xs font-bold'>
                         ⚠️ هذا اليوم مغلق للحجوزات (${data.blocked_reason || 'عطلة'})
                     </div>`;
                     return;
@@ -128,10 +130,10 @@
                     btn.disabled = isBooked;
 
                     if (isBooked) {
-                        btn.className = "bg-zinc-900/50 text-zinc-600 border border-zinc-800 py-3 rounded-xl text-sm cursor-not-allowed line-through";
+                        btn.className = "bg-[#161616] text-zinc-600 border border-zinc-800/50 py-2.5 rounded-xl text-xs cursor-not-allowed line-through";
                         btn.innerText = `${slot} (محجوز)`;
                     } else {
-                        btn.className = "slot-btn bg-zinc-900 border border-zinc-700 hover:border-amber-500 text-gray-200 py-3 rounded-xl text-sm transition font-semibold";
+                        btn.className = "slot-btn bg-[#1a1a1a] border border-zinc-800 hover:border-amber-500/50 text-gray-200 py-2.5 rounded-xl text-xs transition font-bold";
                         btn.innerText = slot;
                         btn.onclick = () => selectSlot(btn, slot);
                     }
@@ -139,18 +141,18 @@
                 });
 
             } catch (err) {
-                grid.innerHTML = "<p class='col-span-3 text-center text-red-400 text-xs'>حدث خطأ أثناء تحميل المواعيد</p>";
+                grid.innerHTML = "<p class='col-span-3 text-center text-red-400 text-xs'>حدث خطأ أثناء الاتصال</p>";
             }
         }
 
         function selectSlot(btnElement, slotTime) {
             document.querySelectorAll(".slot-btn").forEach(b => {
-                b.classList.remove("gold-bg", "text-black", "border-amber-500", "font-bold");
-                b.classList.add("bg-zinc-900", "text-gray-200");
+                b.classList.remove("gold-gradient", "text-black", "border-amber-500", "shadow-md");
+                b.classList.add("bg-[#1a1a1a]", "text-gray-200", "border-zinc-800");
             });
 
-            btnElement.classList.remove("bg-zinc-900", "text-gray-200");
-            btnElement.classList.add("gold-bg", "text-black", "border-amber-500", "font-bold");
+            btnElement.classList.remove("bg-[#1a1a1a]", "text-gray-200", "border-zinc-800");
+            btnElement.classList.add("gold-gradient", "text-black", "border-amber-500", "shadow-md");
             selectedTime = slotTime;
         }
 
@@ -173,7 +175,7 @@
 
             const submitBtn = document.getElementById("submitBtn");
             submitBtn.disabled = true;
-            submitBtn.innerText = "جاري التأكيد...";
+            submitBtn.innerText = "جاري الحفظ...";
 
             try {
                 const res = await fetch("/api/bookings", {
