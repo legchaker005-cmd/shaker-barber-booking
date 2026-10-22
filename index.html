@@ -81,10 +81,10 @@
             <!-- Right Column: Booking Controls & Form -->
             <div class="lg:col-span-8 order-1 lg:order-2 space-y-6">
                 
-                <!-- Section 1: Date & Time Picker -->
+                <!-- Section 1: Date & Time Picker (Numbered 1) -->
                 <div class="card-dark p-6 rounded-2xl space-y-5">
                     <div class="flex items-center gap-2">
-                        <span class="w-6 h-6 rounded-full gold-btn text-xs flex items-center justify-center font-bold">2</span>
+                        <span class="w-6 h-6 rounded-full gold-btn text-xs flex items-center justify-center font-bold">1</span>
                         <h2 id="t_sec1Title" class="text-base font-bold text-white">حدد التاريخ والوقت</h2>
                     </div>
 
@@ -108,10 +108,10 @@
                     </div>
                 </div>
 
-                <!-- Section 2: Service & Client Details -->
+                <!-- Section 2: Service & Client Details (Numbered 2) -->
                 <div class="card-dark p-6 rounded-2xl space-y-5">
                     <div class="flex items-center gap-2">
-                        <span class="w-6 h-6 rounded-full gold-btn text-xs flex items-center justify-center font-bold">3</span>
+                        <span class="w-6 h-6 rounded-full gold-btn text-xs flex items-center justify-center font-bold">2</span>
                         <h2 id="t_sec2Title" class="text-base font-bold text-white">معلومات الحجز والتواصل</h2>
                     </div>
 
@@ -182,7 +182,7 @@
     </div>
 
     <script>
-        const MY_WHATSAPP_NUMBER = "905012359597"; // ضع رقم هاتفك هنا
+        const MY_WHATSAPP_NUMBER = "905XXXXXXXXX"; // ضع رقم هاتفك هنا
 
         const allSlots = ["18:00", "18:55", "19:50", "20:45", "21:40", "22:35"];
         let selectedTime = "18:00";
@@ -220,6 +220,7 @@
                 refreshBtn: "🔄 تحديث المواعيد",
                 modalTitle: "🎉 تم تثبيت حجزك بنجاح!",
                 modalDetails: (name, sName, dayLbl, time) => `تم تثبيت حجزك بنجاح! شكراً ${name}، تم تسجيل حجزك لـ (${sName}) ليوم ${dayLbl} على الساعة ${time}.`,
+                whatsappDetails: (name, sName, dayLbl, time, phone, notes) => `مرحباً شاكر، تم تثبيت حجزك بنجاح!\n\n👤 الاسم: ${name}\n📞 الرقم: ${phone}\n✂️ الخدمة: ${sName}\n📅 التاريخ: ${dayLbl}\n⏰ الوقت: ${time}\n` + (notes ? `📝 ملاحظات: ${notes}` : ''),
                 whatsappBtn: "💬 إرسال التفاصيل عبر الواتساب",
                 closeModal: "إغلاق النافذة",
                 booked: "محجوز",
@@ -252,6 +253,7 @@
                 refreshBtn: "🔄 Randevuları Güncelle",
                 modalTitle: "🎉 Randevunuz Başarıyla Alındı!",
                 modalDetails: (name, sName, dayLbl, time) => `Rezervasyonunuz başarıyla onaylandı! Teşekkürler ${name}, (${sName}) için ${dayLbl} saat ${time} için randevunuz kaydedildi.`,
+                whatsappDetails: (name, sName, dayLbl, time, phone, notes) => `Merhaba Shaker, randevunuz başarıyla onaylandı!\n\n👤 Ad Soyad: ${name}\n📞 Telefon: ${phone}\n✂️ Hizmet: ${sName}\n📅 Tarih: ${dayLbl}\n⏰ Saat: ${time}\n` + (notes ? `📝 Notlar: ${notes}` : ''),
                 whatsappBtn: "💬 Detayları WhatsApp ile Gönder",
                 closeModal: "Pencereyi Kapat",
                 booked: "Dolu",
@@ -284,6 +286,7 @@
                 refreshBtn: "🔄 Refresh Slots",
                 modalTitle: "🎉 Booking Confirmed Successfully!",
                 modalDetails: (name, sName, dayLbl, time) => `Your booking has been confirmed! Thank you ${name}, your booking for (${sName}) on ${dayLbl} at ${time} has been saved.`,
+                whatsappDetails: (name, sName, dayLbl, time, phone, notes) => `Hello Shaker, your booking has been confirmed!\n\n👤 Name: ${name}\n📞 Phone: ${phone}\n✂️ Service: ${sName}\n📅 Date: ${dayLbl}\n⏰ Time: ${time}\n` + (notes ? `📝 Notes: ${notes}` : ''),
                 whatsappBtn: "💬 Send Details via WhatsApp",
                 closeModal: "Close Window",
                 booked: "Booked",
@@ -374,7 +377,6 @@
             fetchAvailability();
         }
 
-        // دالة للتحقق مما إذا كان الوقت قد فات أو يقترب من أقل من 30 دقيقة (فقط في حال كان الحجز لنفس اليوم)
         function isSlotPassedOrTooSoon(slotStr, selectedDateStr) {
             const now = new Date();
             const year = now.getFullYear();
@@ -382,14 +384,12 @@
             const day = String(now.getDate()).padStart(2, '0');
             const todayStr = `${year}-${month}-${day}`;
 
-            // إذا كان التاريخ المختار ليس اليوم، فلا يوجد مانع زمني
             if (selectedDateStr !== todayStr) return false;
 
             const [slotHours, slotMinutes] = slotStr.split(':').map(Number);
             const slotTotalMinutes = slotHours * 60 + slotMinutes;
             const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
 
-            // إذا مر الوقت أو باقي أقل من 30 دقيقة على الموعد
             return slotTotalMinutes <= (currentTotalMinutes + 30);
         }
 
@@ -450,7 +450,6 @@
                     statusGrid.appendChild(badge);
                 });
 
-                // إذا كان الوقت المحدد حالياً أصبح فائتاً أو محجوزاً، نحدد أول وقت متاح تلقائياً
                 if (isSlotPassedOrTooSoon(selectedTime, date) || data.booked_times.includes(selectedTime)) {
                     if (firstAvailableSlot) selectedTime = firstAvailableSlot;
                 }
@@ -495,9 +494,8 @@
             const clientNameVal = document.getElementById("clientName").value;
             const bookingDateVal = document.getElementById("bookingDate").value;
 
-            // التحقق النهائي من عدم السماح بحجز وقت فائت
             if (isSlotPassedOrTooSoon(selectedTime, bookingDateVal)) {
-                alert("عذراً، هذا الموعد فات وقعته أو اقترب جداً ولا يمكن حجزه!");
+                alert("عذراً، هذا الموعد فات وقته أو اقترب جداً ولا يمكن حجزه!");
                 return;
             }
 
@@ -540,13 +538,15 @@
             const t = siteTranslations[currentLang];
             const dayLbl = t.dayLabels[selectedDayKey];
             
-            const textMsg = `Shaker Barber Booking:\n\nName: ${payload.client_name}\nPhone: ${payload.client_phone}\nService: ${payload.service_name}\nDate: ${payload.booking_date} (${dayLbl})\nTime: ${selectedTime}\nNotes: ${payload.notes}`;
+            const currentServiceObj = servicesData.find(s => s.val === payload.service_name);
+            const serviceDisplay = currentServiceObj ? currentServiceObj[currentLang] : payload.service_name;
+
+            const textMsg = t.whatsappDetails(payload.client_name, serviceDisplay, dayLbl, selectedTime, payload.client_phone, payload.notes);
 
             const encodedMsg = encodeURIComponent(textMsg);
             const waUrl = `https://wa.me/${MY_WHATSAPP_NUMBER}?text=${encodedMsg}`;
 
-            // استخدام الجملة المصححة بالشكل الصحيح: تم تثبيت حجزك بنجاح! شكرا فلان، تم تسجيل حجزك لـ...
-            document.getElementById("modalBookingDetails").innerText = t.modalDetails(payload.client_name, payload.service_name, dayLbl, selectedTime);
+            document.getElementById("modalBookingDetails").innerText = t.modalDetails(payload.client_name, serviceDisplay, dayLbl, selectedTime);
             document.getElementById("whatsappBtn").href = waUrl;
             document.getElementById("successModal").classList.remove("hidden");
         }
