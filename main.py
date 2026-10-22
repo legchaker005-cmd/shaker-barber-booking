@@ -37,7 +37,15 @@ def read_root():
 
 @app.post("/api/bookings", status_code=status.HTTP_201_CREATED)
 def create_booking(booking: BookingCreate):
-    # منع التكرار بنفس الاسم بنفس اليوم
+    # 1. منع حجزين في نفس الوقت ونفس اليوم
+    for b in fake_db_bookings:
+        if b["booking_date"] == booking.booking_date and b["booking_time"] == booking.booking_time:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"توقيت ({booking.booking_time}) محجوز بالكامل في يوم ({booking.booking_date})، اختر توقيتاً آخر."
+            )
+            
+    # 2. منع التكرار بنفس الاسم بنفس اليوم
     for b in fake_db_bookings:
         if b["client_name"].strip().lower() == booking.client_name.strip().lower() and b["booking_date"] == booking.booking_date:
             raise HTTPException(
