@@ -26,6 +26,7 @@ class BookingCreate(BaseModel):
 fake_db_bookings = []
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# 1. الرابط الرئيسي للزبائن: /
 @app.get("/", response_class=HTMLResponse)
 def read_root():
     file_path = os.path.join(BASE_DIR, "index.html")
@@ -35,9 +36,19 @@ def read_root():
     except FileNotFoundError:
         return "<h1>ملف index.html غير موجود في المستودع</h1>"
 
+# 2. الرابط الخاص للأدمن: /admin
+@app.get("/admin", response_class=HTMLResponse)
+def read_admin():
+    file_path = os.path.join(BASE_DIR, "admin.html")
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        return "<h1>ملف admin.html غير موجود في المستودع</h1>"
+
+# 3. إنشاء حجز جديد
 @app.post("/api/bookings", status_code=status.HTTP_201_CREATED)
 def create_booking(booking: BookingCreate):
-    # 1. منع حجزين في نفس الوقت ونفس اليوم
     for b in fake_db_bookings:
         if b["booking_date"] == booking.booking_date and b["booking_time"] == booking.booking_time:
             raise HTTPException(
@@ -45,7 +56,6 @@ def create_booking(booking: BookingCreate):
                 detail=f"توقيت ({booking.booking_time}) محجوز بالكامل في يوم ({booking.booking_date})، اختر توقيتاً آخر."
             )
             
-    # 2. منع التكرار بنفس الاسم بنفس اليوم
     for b in fake_db_bookings:
         if b["client_name"].strip().lower() == booking.client_name.strip().lower() and b["booking_date"] == booking.booking_date:
             raise HTTPException(
@@ -59,6 +69,14 @@ def create_booking(booking: BookingCreate):
     fake_db_bookings.append(new_booking)
     return {"success": True, "message": "تم تأكيد الحجز بنجاح!", "data": new_booking}
 
+# 4. جلب جميع الحجوزات
 @app.get("/api/bookings")
 def get_all_bookings():
     return fake_db_bookings
+
+# 5. إلغاء/حذف حجز من قبل الأدمن
+@app.delete("/api/bookings/{booking_id}")
+def delete_booking(booking_id: int):
+    global fake_db_bookings
+    fake_db_bookings = [b for b in fake_db_bookings if b["id"] != booking_id]
+    return {"success": True, "message": "تم حذف الحجز بنجاح"}
