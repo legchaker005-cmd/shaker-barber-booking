@@ -29,6 +29,10 @@ class BlockDayRequest(BaseModel):
 class AddPointRequest(BaseModel):
     client_phone: str
 
+class UpdateLoyaltyRequest(BaseModel):
+    points: int
+    total_rewards: Optional[int] = 0
+
 # Helper function to check admin PIN
 def verify_admin_pin(x_admin_pin: str = Header(None)):
     if x_admin_pin != "1234":
@@ -151,13 +155,30 @@ def unblock_day(blocked_id: int, authorized: bool = Depends(verify_admin_pin)):
     res = supabase.table("blocked_days").delete().eq("id", blocked_id).execute()
     return {"message": "تم إعادة فتح اليوم بنجاح."}
 
-# Admin Loyalty Control: Add Point via QR Scan or Phone
+# Loyalty Admin Management Endpoints
+@app.get("/api/admin/loyalty/cards")
+def get_all_loyalty_cards(authorized: bool = Depends(verify_admin_pin)):
+    res = supabase.table("loyalty_cards").select("*").order("id", desc=True).execute()
+    return res.data or []
+
+@app.put("/api/admin/loyalty/cards/{card_id}")
+def update_loyalty_card(card_id: int, data: UpdateLoyaltyRequest, authorized: bool = Depends(verify_admin_pin)):
+    res = supabase.table("loyalty_cards").update({
+        "points": data.points,
+        "total_rewards": data.total_rewards
+    }).eq("id", card_id).execute()
+    return {"message": "تم تحديث بيانات الولاء بنجاح!"}
+
+@app.delete("/api/admin/loyalty/cards/{card_id}")
+def delete_loyalty_card(card_id: int, authorized: bool = Depends(verify_admin_pin)):
+    res = supabase.table("loyalty_cards").delete().eq("id", card_id).execute()
+    return {"message": "تم حذف بطاقة الولاء بنجاح."}
+
 @app.post("/api/admin/loyalty/add-point")
 def add_loyalty_point(data: AddPointRequest, authorized: bool = Depends(verify_admin_pin)):
     res = supabase.table("loyalty_cards").select("*").eq("client_phone", data.client_phone).execute()
     
     if not res.data:
-        # Create new card if not existing
         card_data = {"client_phone": data.client_phone, "client_name": "زبون صالون", "points": 1, "total_rewards": 0}
         supabase.table("loyalty_cards").insert(card_data).execute()
         return {"message": "تم إنشاء بطاقة جديدة وإضافة النقطة الأولى!", "points": 1, "reward": False}
