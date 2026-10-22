@@ -121,9 +121,7 @@
                         <div>
                             <label id="t_serviceSelectLabel" class="block text-xs text-gray-400 mb-1.5">اختر الخدمة المطلوبة *</label>
                             <select id="serviceName" required onchange="updateSummary()" class="w-full input-dark rounded-xl px-4 py-3 text-sm">
-                                <option value="تدرج احترافي Fade" data-price="350" data-tr="Profesyonel Fade Saç Kesimi" data-en="Professional Fade Haircut">تدرج احترافي Fade - 350 ل.ت</option>
-                                <option value="قص شعر عصري" data-price="250" data-tr="Modern Saç Kesimi" data-en="Modern Haircut">قص شعر عصري - 250 ل.ت</option>
-                                <option value="تحديد وحلاقة اللحية" data-price="150" data-tr="Sakal Kesimi ve Şekillendirme" data-en="Beard Trim & Styling">تحديد وحلاقة اللحية - 150 ل.ت</option>
+                                <!-- Options populated dynamically via JS based on language -->
                             </select>
                         </div>
 
@@ -184,12 +182,18 @@
     </div>
 
     <script>
-        const MY_WHATSAPP_NUMBER = "905XXXXXXXXX"; // ضع رقم هاتفك هنا مع مفتاح الدولة
+        const MY_WHATSAPP_NUMBER = "905XXXXXXXXX"; // ضع رقم هاتفك هنا
 
         const allSlots = ["18:00", "18:55", "19:50", "20:45", "21:40", "22:35"];
         let selectedTime = "18:00";
         let currentLang = 'ar';
         let selectedDayKey = 'today';
+
+        const servicesData = [
+            { ar: "تدرج احترافي Fade - 350 ل.ت", tr: "Profesyonel Fade Kesim - 350 TL", en: "Professional Fade - 350 TL", val: "تدرج احترافي Fade", price: "350" },
+            { ar: "قص شعر عصري - 250 ل.ت", tr: "Modern Saç Kesimi - 250 TL", en: "Modern Haircut - 250 TL", val: "قص شعر عصري", price: "250" },
+            { ar: "تحديد وحلاقة اللحية - 150 ل.ت", tr: "Sakal Tıraşı ve Şekillendirme - 150 TL", en: "Beard Trim & Styling - 150 TL", val: "تحديد وحلاقة اللحية", price: "150" }
+        ];
 
         const siteTranslations = {
             ar: {
@@ -319,6 +323,19 @@
             document.getElementById("t_whatsappBtnText").innerText = t.whatsappBtn;
             document.getElementById("t_closeModalBtn").innerText = t.closeModal;
 
+            // Update Services Dropdown Options dynamically
+            const serviceSelect = document.getElementById("serviceName");
+            const currentVal = serviceSelect.value;
+            serviceSelect.innerHTML = "";
+            servicesData.forEach(serv => {
+                const opt = document.createElement("option");
+                opt.value = serv.val;
+                opt.setAttribute("data-price", serv.price);
+                opt.innerText = serv[lang];
+                if(serv.val === currentVal) opt.selected = true;
+                serviceSelect.appendChild(opt);
+            });
+
             updateSummary();
             fetchAvailability();
         }
@@ -327,13 +344,12 @@
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('/sw.js');
             }
+            changeLanguage('ar'); // Initialize default language
             selectDayQuick('today');
-            updateSummary();
         });
 
         function selectDayQuick(type) {
             selectedDayKey = type;
-            const t = siteTranslations[currentLang];
             const dateInput = document.getElementById("bookingDate");
             const now = new Date();
 
@@ -420,12 +436,13 @@
         function updateSummary() {
             const t = siteTranslations[currentLang];
             const select = document.getElementById("serviceName");
+            if (!select.options[select.selectedIndex]) return;
+            
             const selectedOpt = select.options[select.selectedIndex];
             const price = selectedOpt.getAttribute("data-price") || "350";
             
-            let serviceDisplay = select.value;
-            if (currentLang === 'tr') serviceDisplay = selectedOpt.getAttribute("data-tr") || serviceDisplay;
-            if (currentLang === 'en') serviceDisplay = selectedOpt.getAttribute("data-en") || serviceDisplay;
+            const currentServiceObj = servicesData.find(s => s.val === select.value);
+            const serviceDisplay = currentServiceObj ? currentServiceObj[currentLang] : select.value;
 
             document.getElementById("summaryService").innerText = serviceDisplay;
             document.getElementById("summaryPrice").innerText = `${price} TL`;
@@ -476,7 +493,7 @@
         function showSuccessModal(payload) {
             const t = siteTranslations[currentLang];
             const dayLbl = t.dayLabels[selectedDayKey];
-            const textMsg = `Mirket / Shaker Barber Booking:\n\nName: ${payload.client_name}\nPhone: ${payload.client_phone}\nService: ${payload.service_name}\nDate: ${payload.booking_date} (${dayLbl})\nTime: ${payload.selectedTime || selectedTime}\nNotes: ${payload.notes}`;
+            const textMsg = `Shaker Barber Booking:\n\nName: ${payload.client_name}\nPhone: ${payload.client_phone}\nService: ${payload.service_name}\nDate: ${payload.booking_date} (${dayLbl})\nTime: ${selectedTime}\nNotes: ${payload.notes}`;
 
             const encodedMsg = encodeURIComponent(textMsg);
             const waUrl = `https://wa.me/${MY_WHATSAPP_NUMBER}?text=${encodedMsg}`;
