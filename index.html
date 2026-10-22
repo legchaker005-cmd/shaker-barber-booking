@@ -121,7 +121,7 @@
                         <div>
                             <label id="t_serviceSelectLabel" class="block text-xs text-gray-400 mb-1.5">اختر الخدمة المطلوبة *</label>
                             <select id="serviceName" required onchange="updateSummary()" class="w-full input-dark rounded-xl px-4 py-3 text-sm">
-                                <!-- Options populated dynamically via JS based on language -->
+                                <!-- Options populated dynamically -->
                             </select>
                         </div>
 
@@ -165,7 +165,7 @@
     <div id="successModal" class="fixed inset-0 bg-black/85 flex items-center justify-center p-4 z-50 hidden">
         <div class="card-dark p-6 rounded-2xl max-w-md w-full text-center space-y-5 border border-amber-500/30 shadow-2xl">
             <div class="text-5xl animate-bounce">🎉</div>
-            <h2 id="t_modalTitle" class="text-xl font-bold text-white">تم ثبت حجزك بنجاح!</h2>
+            <h2 id="t_modalTitle" class="text-xl font-bold text-white">تم تثبيت حجزك بنجاح!</h2>
             <p class="text-xs text-gray-300 leading-relaxed" id="modalBookingDetails">
                 تفاصيل الموعد محفوظة في النظام. اضغط على الزر أدناه لتأكيد الموعد مباشرة عبر الواتساب.
             </p>
@@ -182,7 +182,7 @@
     </div>
 
     <script>
-        const MY_WHATSAPP_NUMBER = "905012359597"; // ضع رقم هاتفك هنا
+        const MY_WHATSAPP_NUMBER = "905XXXXXXXXX"; // ضع رقم هاتفك هنا
 
         const allSlots = ["18:00", "18:55", "19:50", "20:45", "21:40", "22:35"];
         let selectedTime = "18:00";
@@ -218,11 +218,12 @@
                 notesPlaceholder: "أي تفاصيل إضافية تحب أن تعرفني بها...",
                 statusGridLabel: "حالة المواعيد المباشرة:",
                 refreshBtn: "🔄 تحديث المواعيد",
-                modalTitle: "🎉 تم ثبت حجزك بنجاح!",
-                modalDetails: (name, sName, dayLbl, time) => `شُكراً ${name}، تم تسجيل حجزك لـ (${sName}) يوم ${dayLbl} الساعة ${time} م.`,
+                modalTitle: "🎉 تم تثبيت حجزك بنجاح!",
+                modalDetails: (name, sName, dayLbl, time) => `تم تثبيت حجزك بنجاح! شكراً ${name}، تم تسجيل حجزك لـ (${sName}) ليوم ${dayLbl} على الساعة ${time}.`,
                 whatsappBtn: "💬 إرسال التفاصيل عبر الواتساب",
                 closeModal: "إغلاق النافذة",
                 booked: "محجوز",
+                passed: "فائت",
                 available: "متاح",
                 blockedDay: (reason) => `⚠️ اليوم مغلق (${reason})`,
                 dayLabels: { today: "اليوم", tomorrow: "غداً", after: "بعد غد" }
@@ -250,10 +251,11 @@
                 statusGridLabel: "Canlı Randevu Durumu:",
                 refreshBtn: "🔄 Randevuları Güncelle",
                 modalTitle: "🎉 Randevunuz Başarıyla Alındı!",
-                modalDetails: (name, sName, dayLbl, time) => `Teşekkürler ${name}, (${sName}) için ${dayLbl} saat ${time}'de randevunuz kaydedildi.`,
+                modalDetails: (name, sName, dayLbl, time) => `Rezervasyonunuz başarıyla onaylandı! Teşekkürler ${name}, (${sName}) için ${dayLbl} saat ${time} için randevunuz kaydedildi.`,
                 whatsappBtn: "💬 Detayları WhatsApp ile Gönder",
                 closeModal: "Pencereyi Kapat",
                 booked: "Dolu",
+                passed: "Geçti",
                 available: "Müsait",
                 blockedDay: (reason) => `⚠️ Bugün kapalı (${reason})`,
                 dayLabels: { today: "Bugün", tomorrow: "Yarın", after: "Yarından Sonra" }
@@ -281,10 +283,11 @@
                 statusGridLabel: "Live Schedule Status:",
                 refreshBtn: "🔄 Refresh Slots",
                 modalTitle: "🎉 Booking Confirmed Successfully!",
-                modalDetails: (name, sName, dayLbl, time) => `Thank you ${name}, your booking for (${sName}) on ${dayLbl} at ${time} has been saved.`,
+                modalDetails: (name, sName, dayLbl, time) => `Your booking has been confirmed! Thank you ${name}, your booking for (${sName}) on ${dayLbl} at ${time} has been saved.`,
                 whatsappBtn: "💬 Send Details via WhatsApp",
                 closeModal: "Close Window",
                 booked: "Booked",
+                passed: "Passed",
                 available: "Available",
                 blockedDay: (reason) => `⚠️ Day Closed (${reason})`,
                 dayLabels: { today: "Today", tomorrow: "Tomorrow", after: "Day After" }
@@ -323,7 +326,6 @@
             document.getElementById("t_whatsappBtnText").innerText = t.whatsappBtn;
             document.getElementById("t_closeModalBtn").innerText = t.closeModal;
 
-            // Update Services Dropdown Options dynamically
             const serviceSelect = document.getElementById("serviceName");
             const currentVal = serviceSelect.value;
             serviceSelect.innerHTML = "";
@@ -344,7 +346,7 @@
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('/sw.js');
             }
-            changeLanguage('ar'); // Initialize default language
+            changeLanguage('ar');
             selectDayQuick('today');
         });
 
@@ -372,6 +374,25 @@
             fetchAvailability();
         }
 
+        // دالة للتحقق مما إذا كان الوقت قد فات أو يقترب من أقل من 30 دقيقة (فقط في حال كان الحجز لنفس اليوم)
+        function isSlotPassedOrTooSoon(slotStr, selectedDateStr) {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const todayStr = `${year}-${month}-${day}`;
+
+            // إذا كان التاريخ المختار ليس اليوم، فلا يوجد مانع زمني
+            if (selectedDateStr !== todayStr) return false;
+
+            const [slotHours, slotMinutes] = slotStr.split(':').map(Number);
+            const slotTotalMinutes = slotHours * 60 + slotMinutes;
+            const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
+
+            // إذا مر الوقت أو باقي أقل من 30 دقيقة على الموعد
+            return slotTotalMinutes <= (currentTotalMinutes + 30);
+        }
+
         async function fetchAvailability() {
             const t = siteTranslations[currentLang];
             const date = document.getElementById("bookingDate").value;
@@ -391,18 +412,28 @@
                     return;
                 }
 
-                allSlots.forEach(slot => {
+                let firstAvailableSlot = null;
+
+                allSlots.forEach((slot, index) => {
                     const isBooked = data.booked_times.includes(slot);
+                    const isTooSoonOrPassed = isSlotPassedOrTooSoon(slot, date);
+
+                    const isDisabled = isBooked || isTooSoonOrPassed;
 
                     const btn = document.createElement("button");
                     btn.type = "button";
-                    btn.disabled = isBooked;
+                    btn.disabled = isDisabled;
 
                     if (isBooked) {
                         btn.className = "bg-zinc-900/60 text-red-400 border border-red-900/40 py-2.5 rounded-xl text-xs font-bold cursor-not-allowed";
                         btn.innerText = `${slot} (${t.booked})`;
+                    } else if (isTooSoonOrPassed) {
+                        btn.className = "bg-zinc-900/40 text-gray-500 border border-zinc-800 py-2.5 rounded-xl text-xs font-bold cursor-not-allowed";
+                        btn.innerText = `${slot} (${t.passed})`;
                     } else {
-                        btn.className = `slot-btn input-dark py-2.5 rounded-xl text-xs font-bold transition ${selectedTime === slot ? 'gold-btn' : ''}`;
+                        if (!firstAvailableSlot) firstAvailableSlot = slot;
+                        const isSelected = selectedTime === slot;
+                        btn.className = `slot-btn input-dark py-2.5 rounded-xl text-xs font-bold transition ${isSelected ? 'gold-btn' : ''}`;
                         btn.innerText = `${slot}`;
                         btn.onclick = () => selectSlot(btn, slot);
                     }
@@ -412,12 +443,18 @@
                     badge.className = "input-dark p-2 rounded-xl flex items-center justify-between text-xs";
                     badge.innerHTML = `
                         <span class="font-bold">${slot}</span>
-                        <span class="${isBooked ? 'bg-red-900/50 text-red-400' : 'bg-emerald-900/50 text-emerald-400'} px-2 py-0.5 rounded-md text-[10px] font-bold">
-                            ${isBooked ? '🔴 ' + t.booked : '🟢 ' + t.available}
+                        <span class="${isDisabled ? 'bg-red-900/50 text-red-400' : 'bg-emerald-900/50 text-emerald-400'} px-2 py-0.5 rounded-md text-[10px] font-bold">
+                            ${isBooked ? '🔴 ' + t.booked : (isTooSoonOrPassed ? '⏰ ' + t.passed : '🟢 ' + t.available)}
                         </span>
                     `;
                     statusGrid.appendChild(badge);
                 });
+
+                // إذا كان الوقت المحدد حالياً أصبح فائتاً أو محجوزاً، نحدد أول وقت متاح تلقائياً
+                if (isSlotPassedOrTooSoon(selectedTime, date) || data.booked_times.includes(selectedTime)) {
+                    if (firstAvailableSlot) selectedTime = firstAvailableSlot;
+                }
+
                 updateSummary();
             } catch (err) {
                 grid.innerHTML = "<p class='col-span-3 text-xs text-red-400'>Error</p>";
@@ -455,11 +492,20 @@
 
         async function handleBooking(e) {
             e.preventDefault();
+            const clientNameVal = document.getElementById("clientName").value;
+            const bookingDateVal = document.getElementById("bookingDate").value;
+
+            // التحقق النهائي من عدم السماح بحجز وقت فائت
+            if (isSlotPassedOrTooSoon(selectedTime, bookingDateVal)) {
+                alert("عذراً، هذا الموعد فات وقعته أو اقترب جداً ولا يمكن حجزه!");
+                return;
+            }
+
             const payload = {
-                client_name: document.getElementById("clientName").value,
+                client_name: clientNameVal,
                 client_phone: document.getElementById("clientPhone").value,
                 service_name: document.getElementById("serviceName").value,
-                booking_date: document.getElementById("bookingDate").value,
+                booking_date: bookingDateVal,
                 booking_time: selectedTime,
                 notes: document.getElementById("notes").value
             };
@@ -493,11 +539,13 @@
         function showSuccessModal(payload) {
             const t = siteTranslations[currentLang];
             const dayLbl = t.dayLabels[selectedDayKey];
+            
             const textMsg = `Shaker Barber Booking:\n\nName: ${payload.client_name}\nPhone: ${payload.client_phone}\nService: ${payload.service_name}\nDate: ${payload.booking_date} (${dayLbl})\nTime: ${selectedTime}\nNotes: ${payload.notes}`;
 
             const encodedMsg = encodeURIComponent(textMsg);
             const waUrl = `https://wa.me/${MY_WHATSAPP_NUMBER}?text=${encodedMsg}`;
 
+            // استخدام الجملة المصححة بالشكل الصحيح: تم تثبيت حجزك بنجاح! شكرا فلان، تم تسجيل حجزك لـ...
             document.getElementById("modalBookingDetails").innerText = t.modalDetails(payload.client_name, payload.service_name, dayLbl, selectedTime);
             document.getElementById("whatsappBtn").href = waUrl;
             document.getElementById("successModal").classList.remove("hidden");
