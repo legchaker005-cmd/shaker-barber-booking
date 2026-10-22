@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>صالون الحلاقة الاحترافي | حجز المواعيد</title>
+    <title>SHAKER BARBER | حجز المواعيد</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
@@ -26,7 +26,7 @@
 </head>
 <body class="bg-dark-900 text-gray-100 font-sans min-h-screen antialiased">
 
-    <!-- Header -->
+    <!-- Header Navigation -->
     <header class="border-b border-dark-700 bg-dark-900/90 backdrop-blur sticky top-0 z-50">
         <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-3 space-x-reverse">
@@ -35,201 +35,328 @@
                 </div>
                 <div>
                     <h1 class="text-lg font-bold tracking-wide gold-text">SHAKER BARBER</h1>
-                    <p class="text-xs text-gray-400">حلاقة احترافية وتدرجات عصرية</p>
+                    <p class="text-xs text-gray-400">حلاقة احترافية وتدرجات عصرية (45 دقيقة حلاقة + 30 دقيقة استراحة)</p>
                 </div>
             </div>
+
+            <!-- View Toggle Switcher -->
             <div class="flex items-center space-x-2 space-x-reverse bg-dark-800 p-1 rounded-xl border border-dark-700">
                 <button id="btn-user-view" onclick="switchView('user')" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-gold-500 text-black shadow-md flex items-center gap-2">
-                    <i data-lucide="user" class="w-4 h-4"></i><span>حجز موعد</span>
+                    <i data-lucide="user" class="w-4 h-4"></i>
+                    <span>حجز موعد</span>
                 </button>
                 <button id="btn-admin-view" onclick="switchView('admin')" class="px-4 py-1.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-white flex items-center gap-2">
-                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>لوحة الحلاق</span>
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                    <span>لوحة الحلاق</span>
                 </button>
             </div>
         </div>
     </header>
 
+    <!-- Main Container -->
     <main class="max-w-6xl mx-auto px-4 py-8">
-        <!-- USER BOOKING SECTION -->
+
+        <!-- USER BOOKING VIEW -->
         <section id="user-booking-view" class="space-y-8">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
                 <div class="lg:col-span-2 space-y-8">
-                    <!-- Step 1 -->
+                    
+                    <!-- Step 1: Services -->
                     <div class="bg-dark-800 p-6 rounded-2xl border border-dark-700 space-y-4">
                         <h3 class="text-lg font-bold flex items-center gap-2 text-white">
-                            <span class="w-7 h-7 rounded-full bg-gold-500/20 text-gold-400 flex items-center justify-center text-xs">1</span>
-                            <span>اختر الخدمات المطلوبة</span>
+                            <span class="w-7 h-7 rounded-full bg-gold-500/20 text-gold-400 flex items-center justify-center text-xs border border-gold-500/30">1</span>
+                            <span>اختر الخدمة المطلوبة</span>
                         </h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="services-grid"></div>
                     </div>
-                    <!-- Step 2 -->
+
+                    <!-- Step 2: Date & Time -->
                     <div class="bg-dark-800 p-6 rounded-2xl border border-dark-700 space-y-4">
                         <h3 class="text-lg font-bold flex items-center gap-2 text-white">
-                            <span class="w-7 h-7 rounded-full bg-gold-500/20 text-gold-400 flex items-center justify-center text-xs">2</span>
-                            <span>حدد التاريخ والوقت</span>
+                            <span class="w-7 h-7 rounded-full bg-gold-500/20 text-gold-400 flex items-center justify-center text-xs border border-gold-500/30">2</span>
+                            <span>حدد التاريخ والوقت (المدة: 45 دقيقة)</span>
                         </h3>
-                        <div class="flex gap-2 overflow-x-auto pb-2" id="date-selector"></div>
-                        <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-2" id="time-slots-grid"></div>
-                    </div>
-                    <!-- Step 3 -->
-                    <div class="bg-dark-800 p-6 rounded-2xl border border-dark-700 space-y-4">
-                        <h3 class="text-lg font-bold flex items-center gap-2 text-white">
-                            <span class="w-7 h-7 rounded-full bg-gold-500/20 text-gold-400 flex items-center justify-center text-xs">3</span>
-                            <span>معلومات الحجز</span>
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <input type="text" id="cust-name" placeholder="الاسم الكامل" class="bg-dark-900 border border-dark-700 rounded-xl px-4 py-2.5 text-sm text-white focus:border-gold-500">
-                            <input type="tel" id="cust-phone" placeholder="05XXXXXXXX" class="bg-dark-900 border border-dark-700 rounded-xl px-4 py-2.5 text-sm text-white focus:border-gold-500" dir="ltr">
+                        
+                        <div class="space-y-2">
+                            <label class="text-xs text-gray-400">اختر اليوم:</label>
+                            <div class="flex gap-2 overflow-x-auto pb-2" id="date-selector"></div>
                         </div>
-                        <textarea id="cust-notes" rows="2" placeholder="ملاحظات إضافية (اختياري)" class="w-full bg-dark-900 border border-dark-700 rounded-xl px-4 py-2.5 text-sm text-white focus:border-gold-500"></textarea>
+
+                        <div class="space-y-2 pt-2">
+                            <label class="text-xs text-gray-400">اختر التوقيت المتاح:</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2" id="time-slots-grid"></div>
+                        </div>
                     </div>
+
+                    <!-- Step 3: Customer Info -->
+                    <div class="bg-dark-800 p-6 rounded-2xl border border-dark-700 space-y-4">
+                        <h3 class="text-lg font-bold flex items-center gap-2 text-white">
+                            <span class="w-7 h-7 rounded-full bg-gold-500/20 text-gold-400 flex items-center justify-center text-xs border border-gold-500/30">3</span>
+                            <span>معلومات الحجز والتواصل</span>
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="text" id="cust-name" placeholder="الاسم الكامل *" class="bg-dark-900 border border-dark-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gold-500">
+                            <input type="tel" id="cust-phone" placeholder="رقم الهاتف (05XXXXXXXX) *" class="bg-dark-900 border border-dark-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gold-500" dir="ltr">
+                        </div>
+                        <textarea id="cust-notes" rows="2" placeholder="ملاحظات أو تفضيلات القصة (اختياري)..." class="w-full bg-dark-900 border border-dark-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gold-500"></textarea>
+                    </div>
+
                 </div>
 
                 <!-- Sidebar Summary -->
                 <div class="lg:col-span-1">
-                    <div class="bg-dark-800 p-6 rounded-2xl border border-dark-700 space-y-6 sticky top-24">
-                        <h3 class="text-lg font-bold border-b border-dark-700 pb-3 text-white">ملخص الحجز</h3>
+                    <div class="bg-dark-800 p-6 rounded-2xl border border-dark-700 space-y-6 sticky top-24 shadow-xl">
+                        <h3 class="text-lg font-bold border-b border-dark-700 pb-3 text-white flex items-center gap-2">
+                            <i data-lucide="receipt" class="w-5 h-5 text-gold-400"></i>
+                            <span>ملخص الحجز</span>
+                        </h3>
+
                         <div class="space-y-3 text-sm">
-                            <div class="flex justify-between text-gray-400"><span>التاريخ والوقت:</span><span id="summary-dt" class="text-gold-400">--</span></div>
-                            <div class="flex justify-between text-base font-bold pt-2 border-t border-dark-700"><span>الإجمالي:</span><span id="summary-total" class="gold-text">0 ل.ت</span></div>
+                            <div class="flex justify-between text-gray-400">
+                                <span>الخدمة:</span>
+                                <span class="font-semibold text-white" id="summary-service-name">قص شعر عصري</span>
+                            </div>
+                            <div class="flex justify-between text-gray-400">
+                                <span>التاريخ والوقت:</span>
+                                <span class="font-semibold text-gold-400" id="summary-dt">--</span>
+                            </div>
+                            <hr class="border-dark-700">
+                            <div class="flex justify-between items-center text-base font-bold pt-1">
+                                <span class="text-white">الإجمالي:</span>
+                                <span class="text-xl gold-text" id="summary-total">150 ل.ت</span>
+                            </div>
                         </div>
-                        <button onclick="submitBooking()" class="w-full py-3.5 rounded-xl font-bold text-black gold-gradient shadow-lg">تأكيد الموعد فوراً</button>
+
+                        <button onclick="submitBooking()" class="w-full py-3.5 rounded-xl font-bold text-black gold-gradient hover:opacity-90 transition-all shadow-lg flex items-center justify-center gap-2">
+                            <i data-lucide="check-circle" class="w-5 h-5"></i>
+                            <span>تأكيد الموعد فوراً</span>
+                        </button>
                     </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ADMIN DASHBOARD VIEW (READ-ONLY FOR BARBER) -->
+        <section id="admin-dashboard-view" class="space-y-6 hidden">
+            <div class="bg-dark-800 rounded-2xl border border-dark-700 p-6 space-y-4 shadow-xl">
+                <div class="flex justify-between items-center border-b border-dark-700 pb-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-white">جدول الحجوزات والمواعيد (عرض فقط)</h3>
+                        <p class="text-xs text-gray-400">متابعة المواعيد المسجلة من الزبائن</p>
+                    </div>
+                    <button onclick="fetchAdminBookings()" class="px-4 py-2 bg-gold-500 text-black rounded-xl text-xs font-bold flex items-center gap-2 hover:bg-gold-600">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        <span>تحديث القائمة</span>
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right text-sm">
+                        <thead class="text-xs text-gray-400 bg-dark-900 border-b border-dark-700">
+                            <tr>
+                                <th class="p-3">#</th>
+                                <th class="p-3">اسم الزبون</th>
+                                <th class="p-3">رقم الهاتف</th>
+                                <th class="p-3">الخدمة</th>
+                                <th class="p-3">تاريخ ووقت الموعد</th>
+                                <th class="p-3">ملاحظات</th>
+                                <th class="p-3 text-center">الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body" class="divide-y divide-dark-700">
+                            <tr><td colspan="7" class="text-center p-6 text-gray-500">جاري تحميل البيانات...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </section>
 
-        <!-- ADMIN DASHBOARD SECTION -->
-        <section id="admin-dashboard-view" class="space-y-6 hidden">
-            <div class="bg-dark-800 rounded-2xl border border-dark-700 p-6 space-y-4">
-                <div class="flex justify-between items-center border-b border-dark-700 pb-4">
-                    <h3 class="text-lg font-bold text-white">لوحة تحكم الحجوزات</h3>
-                    <button onclick="fetchAdminBookings()" class="px-3 py-1.5 bg-gold-500 text-black rounded-lg text-xs font-bold">تحديث القائمة</button>
-                </div>
-                <table class="w-full text-right text-sm">
-                    <thead class="text-xs text-gray-400 bg-dark-900 border-b border-dark-700">
-                        <tr>
-                            <th class="p-3">الزبون</th>
-                            <th class="p-3">الهاتف</th>
-                            <th class="p-3">الخدمة</th>
-                            <th class="p-3">الموعد</th>
-                            <th class="p-3">الحالة</th>
-                            <th class="p-3 text-center">إجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="admin-table-body" class="divide-y divide-dark-700"></tbody>
-                </table>
-            </div>
-        </section>
     </main>
 
     <script>
+        // الخدمات (بدون VIP)
         const SERVICES = [
             { id: 'haircut', name: 'قص شعر عصري', price: 150 },
             { id: 'beard', name: 'تحديد وحلاقة اللحية', price: 100 },
-            { id: 'fade', name: 'تدرج احترافي Fade', price: 180 },
-            { id: 'full', name: 'باكيج VIP كامل', price: 320 }
+            { id: 'fade', name: 'تدرج احترافي Fade', price: 180 }
         ];
+
+        // المواعيد (فارق ساعة وربع: 45 دقيقة حلاقة + 30 دقيقة استراحة)
+        const TIME_SLOTS = [
+            '10:00 ص', '11:15 ص', '12:30 م', '01:45 م',
+            '03:00 م', '04:15 م', '05:30 م', '06:45 م', '08:00 م'
+        ];
+
         let selectedService = SERVICES[0];
-        let selectedDate = "اليوم";
-        let selectedTime = "10:00 ص";
+        let selectedDate = 'اليوم';
+        let selectedTime = TIME_SLOTS[0];
 
         window.onload = () => {
             renderServices();
             renderDates();
             renderTimes();
+            updateSummary();
             lucide.createIcons();
         };
 
         function switchView(view) {
+            const btnUser = document.getElementById('btn-user-view');
+            const btnAdmin = document.getElementById('btn-admin-view');
+            const userView = document.getElementById('user-booking-view');
+            const adminView = document.getElementById('admin-dashboard-view');
+
             if (view === 'user') {
-                document.getElementById('user-booking-view').classList.remove('hidden');
-                document.getElementById('admin-dashboard-view').classList.add('hidden');
+                userView.classList.remove('hidden');
+                adminView.classList.add('hidden');
+                btnUser.className = 'px-4 py-1.5 rounded-lg text-xs font-semibold bg-gold-500 text-black shadow-md flex items-center gap-2';
+                btnAdmin.className = 'px-4 py-1.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-white flex items-center gap-2';
             } else {
-                document.getElementById('user-booking-view').classList.add('hidden');
-                document.getElementById('admin-dashboard-view').classList.remove('hidden');
+                userView.classList.add('hidden');
+                adminView.classList.remove('hidden');
+                btnAdmin.className = 'px-4 py-1.5 rounded-lg text-xs font-semibold bg-gold-500 text-black shadow-md flex items-center gap-2';
+                btnUser.className = 'px-4 py-1.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-white flex items-center gap-2';
                 fetchAdminBookings();
             }
         }
 
         function renderServices() {
-            document.getElementById('services-grid').innerHTML = SERVICES.map(s => `
-                <div onclick="selectService('${s.id}')" id="svc-${s.id}" class="p-4 rounded-xl border ${s.id === 'haircut' ? 'border-gold-500 bg-gold-500/5' : 'border-dark-700 bg-dark-900'} cursor-pointer flex justify-between items-center">
-                    <div><h4 class="font-bold text-sm text-white">${s.name}</h4><span class="text-xs text-gold-400 font-semibold">${s.price} ل.ت</span></div>
-                </div>
-            `).join('');
+            const container = document.getElementById('services-grid');
+            container.innerHTML = SERVICES.map(s => {
+                const isSelected = s.id === selectedService.id;
+                return `
+                    <div onclick="selectService('${s.id}')" class="p-4 rounded-xl border cursor-pointer transition-all flex justify-between items-center ${isSelected ? 'border-gold-500 bg-gold-500/10' : 'border-dark-700 bg-dark-900 hover:border-dark-600'}">
+                        <div>
+                            <h4 class="font-bold text-sm text-white">${s.name}</h4>
+                            <span class="text-xs text-gold-400 font-semibold">${s.price} ل.ت</span>
+                        </div>
+                        <div class="w-5 h-5 rounded-full border ${isSelected ? 'border-gold-500 bg-gold-500 text-black' : 'border-dark-600'} flex items-center justify-center text-xs font-bold">
+                            ${isSelected ? '✓' : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         function selectService(id) {
             selectedService = SERVICES.find(s => s.id === id);
             renderServices();
-            document.getElementById('summary-total').innerText = selectedService.price + ' ل.ت';
+            updateSummary();
         }
 
         function renderDates() {
             const days = ['اليوم', 'غداً', 'بعد غد'];
-            document.getElementById('date-selector').innerHTML = days.map((d, i) => `
-                <button onclick="selectedDate='${d}'" class="px-4 py-2 rounded-xl border ${i === 0 ? 'border-gold-500 bg-gold-500 text-black' : 'border-dark-700 bg-dark-900 text-gray-300'} text-xs font-semibold">${d}</button>
-            `).join('');
+            const container = document.getElementById('date-selector');
+            container.innerHTML = days.map(d => {
+                const isSelected = d === selectedDate;
+                return `
+                    <button onclick="selectDate('${d}')" class="px-4 py-2 rounded-xl border text-xs font-semibold transition-all ${isSelected ? 'border-gold-500 bg-gold-500 text-black' : 'border-dark-700 bg-dark-900 text-gray-300 hover:border-dark-600'}">
+                        ${d}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function selectDate(d) {
+            selectedDate = d;
+            renderDates();
+            updateSummary();
         }
 
         function renderTimes() {
-            const times = ['10:00 ص', '12:00 م', '02:00 م', '04:00 م', '06:00 م', '08:00 م'];
-            document.getElementById('time-slots-grid').innerHTML = times.map((t, i) => `
-                <button onclick="selectedTime='${t}'" class="py-2 rounded-xl border ${i === 0 ? 'border-gold-500 bg-gold-500/20 text-gold-400' : 'border-dark-700 bg-dark-900 text-gray-300'} text-xs font-semibold">${t}</button>
-            `).join('');
+            const container = document.getElementById('time-slots-grid');
+            container.innerHTML = TIME_SLOTS.map(t => {
+                const isSelected = t === selectedTime;
+                return `
+                    <button onclick="selectTime('${t}')" class="py-2.5 rounded-xl border text-xs font-semibold text-center transition-all ${isSelected ? 'border-gold-500 bg-gold-500/20 text-gold-400 font-bold' : 'border-dark-700 bg-dark-900 text-gray-300 hover:border-dark-600'}">
+                        ${t}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function selectTime(t) {
+            selectedTime = t;
+            renderTimes();
+            updateSummary();
+        }
+
+        function updateSummary() {
+            document.getElementById('summary-service-name').innerText = selectedService.name;
+            document.getElementById('summary-dt').innerText = `${selectedDate} | ${selectedTime}`;
+            document.getElementById('summary-total').innerText = `${selectedService.price} ل.ت`;
         }
 
         async function submitBooking() {
+            const name = document.getElementById('cust-name').value.trim();
+            const phone = document.getElementById('cust-phone').value.trim();
+            const notes = document.getElementById('cust-notes').value.trim();
+
+            if (!name || !phone) {
+                alert('⚠️ يرجى إدخال الاسم الكامل ورقم الهاتف لتأكيد الحجز');
+                return;
+            }
+
             const data = {
-                client_name: document.getElementById('cust-name').value,
-                client_phone: document.getElementById('cust-phone').value,
+                client_name: name,
+                client_phone: phone,
                 service_name: selectedService.name,
                 booking_date: selectedDate,
                 booking_time: selectedTime,
-                notes: document.getElementById('cust-notes').value
+                notes: notes
             };
-            if(!data.client_name || !data.client_phone) {
-                alert('يرجى ملء الاسم ورقم الهاتف');
-                return;
-            }
-            const res = await fetch('/api/bookings', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
-            });
-            if(res.ok) {
-                alert('✅ تم حجز موعدك بنجاح!');
-                document.getElementById('cust-name').value = '';
-                document.getElementById('cust-phone').value = '';
-            } else {
-                alert('حدث خطأ ما');
+
+            try {
+                const res = await fetch('/api/bookings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    alert('✅ تم تأكيد حجز موعدك بنجاح!');
+                    document.getElementById('cust-name').value = '';
+                    document.getElementById('cust-phone').value = '';
+                    document.getElementById('cust-notes').value = '';
+                } else {
+                    alert('❌ ' + (result.detail || 'حدث خطأ أثناء الحجز'));
+                }
+            } catch (err) {
+                alert('❌ تعذر الاتصال بالسيرفر، يرجى المحاولة لاحقاً');
             }
         }
 
         async function fetchAdminBookings() {
-            const res = await fetch('/api/bookings');
-            const data = await res.json();
             const tbody = document.getElementById('admin-table-body');
-            if(data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center p-6 text-gray-500">لا توجد حجوزات مسجلة</td></tr>`;
-                return;
-            }
-            tbody.innerHTML = data.map(b => `
-                <tr class="border-b border-dark-700">
-                    <td class="p-3 font-semibold text-white">${b.client_name}</td>
-                    <td class="p-3 text-xs text-gray-300">${b.client_phone}</td>
-                    <td class="p-3 text-xs text-gray-300">${b.service_name}</td>
-                    <td class="p-3 text-xs text-gold-400">${b.booking_date} - ${b.booking_time}</td>
-                    <td class="p-3"><span class="px-2 py-1 bg-yellow-500/10 text-yellow-400 text-[10px] rounded">${b.status}</span></td>
-                    <td class="p-3 text-center"><button onclick="deleteBooking(${b.id})" class="px-2 py-1 bg-red-500/20 text-red-400 rounded text-xs">حذف</button></td>
-                </tr>
-            `).join('');
-        }
+            try {
+                const res = await fetch('/api/bookings');
+                const data = await res.json();
 
-        async function deleteBooking(id) {
-            await fetch(`/api/bookings/${id}`, { method: 'DELETE' });
-            fetchAdminBookings();
+                if (data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center p-6 text-gray-500">لا توجد حجوزات مسجلة حتى الآن</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = data.map(b => `
+                    <tr class="hover:bg-dark-900/50 transition-colors">
+                        <td class="p-3 text-xs text-gray-400">#${b.id}</td>
+                        <td class="p-3 font-semibold text-white">${b.client_name}</td>
+                        <td class="p-3 text-xs text-gray-300" dir="ltr">${b.client_phone}</td>
+                        <td class="p-3 text-xs text-gray-300">${b.service_name}</td>
+                        <td class="p-3 text-xs text-gold-400 font-semibold">${b.booking_date} • ${b.booking_time}</td>
+                        <td class="p-3 text-xs text-gray-400">${b.notes || '--'}</td>
+                        <td class="p-3 text-center">
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">${b.status}</span>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center p-6 text-red-400">حدث خطأ أثناء جلب الحجوزات</td></tr>`;
+            }
         }
     </script>
 </body>
