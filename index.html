@@ -38,10 +38,6 @@
                     <p class="text-xs text-gray-400">حلاقة احترافية وتدرجات عصرية</p>
                 </div>
             </div>
-            <a href="/admin" class="text-xs text-gray-500 hover:text-gold-400 flex items-center gap-1 transition-colors">
-                <i data-lucide="lock" class="w-3.5 h-3.5"></i>
-                <span>الإدارة</span>
-            </a>
         </div>
     </header>
 
@@ -131,7 +127,7 @@
             </div>
         </section>
 
-        <!-- PUBLIC AVAILABILITY TABLE (NO PERSONAL DATA) -->
+        <!-- PUBLIC AVAILABILITY TABLE -->
         <section class="bg-dark-800 rounded-2xl border border-dark-700 p-6 space-y-4 shadow-xl">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-dark-700 pb-4">
                 <div class="flex gap-2 overflow-x-auto" id="public-view-date-selector"></div>
@@ -161,18 +157,24 @@
         let publicViewDate = 'اليوم';
         let existingBookings = [];
 
-        window.onload = async () => {
+        document.addEventListener("DOMContentLoaded", function() {
             renderServices();
             renderDates();
             renderPublicViewDates();
-            await loadBookingsAvailability();
-            lucide.createIcons();
-        };
+            loadBookingsAvailability();
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        });
 
         async function loadBookingsAvailability() {
             try {
                 const res = await fetch('/api/bookings');
-                existingBookings = await res.json();
+                if(res.ok) {
+                    existingBookings = await res.json();
+                } else {
+                    existingBookings = [];
+                }
             } catch (err) {
                 existingBookings = [];
             }
@@ -183,6 +185,7 @@
 
         function renderServices() {
             const container = document.getElementById('services-grid');
+            if(!container) return;
             container.innerHTML = SERVICES.map(s => {
                 const isSelected = s.id === selectedService.id;
                 return `
@@ -208,6 +211,7 @@
         function renderDates() {
             const days = ['اليوم', 'غداً', 'بعد غد'];
             const container = document.getElementById('date-selector');
+            if(!container) return;
             container.innerHTML = days.map(d => {
                 const isSelected = d === selectedDate;
                 return `
@@ -221,6 +225,7 @@
         function renderPublicViewDates() {
             const days = ['اليوم', 'غداً', 'بعد غد'];
             const container = document.getElementById('public-view-date-selector');
+            if(!container) return;
             container.innerHTML = days.map(d => {
                 const isSelected = d === publicViewDate;
                 return `
@@ -250,6 +255,7 @@
 
         function renderTimes() {
             const container = document.getElementById('time-slots-grid');
+            if(!container) return;
             container.innerHTML = TIME_SLOTS.map(t => {
                 const booked = isSlotBooked(selectedDate, t);
                 const isSelected = t === selectedTime;
@@ -279,6 +285,7 @@
 
         function renderAvailabilityGrid() {
             const container = document.getElementById('availability-grid');
+            if(!container) return;
             container.innerHTML = TIME_SLOTS.map(t => {
                 const booked = isSlotBooked(publicViewDate, t);
                 return `
@@ -294,9 +301,12 @@
         }
 
         function updateSummary() {
-            document.getElementById('summary-service-name').innerText = selectedService.name;
-            document.getElementById('summary-dt').innerText = `${selectedDate} | ${selectedTime}`;
-            document.getElementById('summary-total').innerText = `${selectedService.price} ل.ت`;
+            const nameEl = document.getElementById('summary-service-name');
+            const dtEl = document.getElementById('summary-dt');
+            const totalEl = document.getElementById('summary-total');
+            if(nameEl) nameEl.innerText = selectedService.name;
+            if(dtEl) dtEl.innerText = `${selectedDate} | ${selectedTime}`;
+            if(totalEl) totalEl.innerText = `${selectedService.price} ل.ت`;
         }
 
         async function submitBooking() {
