@@ -10,7 +10,6 @@
         body { font-family: 'Tajawal', sans-serif; background-color: #0b0b0b; color: #f3f4f6; }
         .gold-bg { background: linear-gradient(135deg, #d4af37 0%, #f3e5ab 50%, #aa7c11 100%); }
         .gold-text { background: linear-gradient(135deg, #d4af37 0%, #f3e5ab 50%, #aa7c11 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .gold-border { border-color: #d4af37; }
         .glass-card { background: rgba(18, 18, 18, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, 0.2); }
     </style>
 </head>
@@ -25,28 +24,27 @@
     <!-- Main Container -->
     <main class="max-w-xl mx-auto w-full space-y-6">
         
-        <!-- Form Container -->
         <div class="glass-card p-6 md:p-8 rounded-2xl shadow-2xl">
             <form id="bookingForm" onsubmit="handleBooking(event)" class="space-y-5">
                 
                 <!-- Client Name -->
                 <div>
-                    <label class="block text-xs font-semibold text-gray-300 mb-2">الاسم الكامل</label>
+                    <label class="block text-sm font-semibold text-gray-300 mb-2">الاسم الكامل</label>
                     <input type="text" id="clientName" required placeholder="أدخل اسمك الكريم"
                         class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition">
                 </div>
 
                 <!-- Client Phone -->
                 <div>
-                    <label class="block text-xs font-semibold text-gray-300 mb-2">رقم الهاتف</label>
+                    <label class="block text-sm font-semibold text-gray-300 mb-2">رقم الهاتف</label>
                     <input type="tel" id="clientPhone" required placeholder="05XXXXXXXX"
                         class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition text-right" dir="ltr">
                 </div>
 
                 <!-- Service Selection -->
                 <div>
-                    <label class="block text-xs font-semibold text-gray-300 mb-2">اختر الخدمة</label>
-                    <select id="serviceName" required onchange="updateSummary()"
+                    <label class="block text-sm font-semibold text-gray-300 mb-2">اختر الخدمة</label>
+                    <select id="serviceName" required
                         class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition">
                         <option value="حلاقة شعر احترافية">حلاقة شعر احترافية - 200 TL</option>
                         <option value="حلاقة شعر + ذقن">حلاقة شعر + ذقن - 300 TL</option>
@@ -56,29 +54,29 @@
 
                 <!-- Date Picker -->
                 <div>
-                    <label class="block text-xs font-semibold text-gray-300 mb-2">تاريخ الحجز</label>
+                    <label class="block text-sm font-semibold text-gray-300 mb-2">تاريخ الحجز</label>
                     <input type="date" id="bookingDate" required onchange="fetchAvailability()"
                         class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition">
                 </div>
 
                 <!-- Time Slot Grid -->
                 <div>
-                    <label class="block text-xs font-semibold text-gray-300 mb-2">المواعيد المتاحة (من 18:00 إلى 23:00)</label>
-                    <div id="timeSlotsGrid" class="grid grid-cols-3 gap-2">
+                    <label class="block text-sm font-semibold text-gray-300 mb-2">اختر وقت الموعد (من 18:00 إلى 23:00)</label>
+                    <div id="timeSlotsGrid" class="grid grid-cols-2 md:grid-cols-3 gap-2.5">
                         <!-- slots loaded dynamically -->
                     </div>
                 </div>
 
                 <!-- Notes -->
                 <div>
-                    <label class="block text-xs font-semibold text-gray-300 mb-2">ملاحظات إضافية (اختياري)</label>
+                    <label class="block text-sm font-semibold text-gray-300 mb-2">ملاحظات إضافية (اختياري)</label>
                     <input type="text" id="notes" placeholder="أي تفاصيل خاصة بالحجز..."
                         class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition">
                 </div>
 
                 <!-- Submit Button -->
                 <button type="submit" id="submitBtn"
-                    class="w-full gold-bg text-black font-bold py-4 rounded-xl shadow-lg hover:opacity-90 transition transform active:scale-95 text-base">
+                    class="w-full gold-bg text-black font-bold py-4 rounded-xl shadow-lg hover:opacity-90 transition transform active:scale-95 text-base mt-4">
                     تأكيد الموعد فوراً ✂️
                 </button>
             </form>
@@ -94,7 +92,6 @@
         const allSlots = ["18:00", "18:45", "19:30", "20:15", "21:00", "21:45", "22:30"];
         let selectedTime = null;
 
-        // Set default date to today
         document.addEventListener("DOMContentLoaded", () => {
             const today = new Date().toISOString().split('T')[0];
             const dateInput = document.getElementById("bookingDate");
@@ -106,7 +103,7 @@
         async function fetchAvailability() {
             const date = document.getElementById("bookingDate").value;
             const grid = document.getElementById("timeSlotsGrid");
-            grid.innerHTML = "<p class='col-span-3 text-center text-gray-400 text-xs py-2'>جاري جلب المواعيد المتاحة...</p>";
+            grid.innerHTML = "<p class='col-span-3 text-center text-gray-400 text-xs py-2'>جاري التحقق من المواعيد...</p>";
             selectedTime = null;
 
             if (!date) return;
@@ -131,10 +128,10 @@
                     btn.disabled = isBooked;
 
                     if (isBooked) {
-                        btn.className = "bg-zinc-800 text-zinc-600 border border-zinc-800 py-2.5 rounded-xl text-xs cursor-not-allowed line-through";
+                        btn.className = "bg-zinc-900/50 text-zinc-600 border border-zinc-800 py-3 rounded-xl text-sm cursor-not-allowed line-through";
                         btn.innerText = `${slot} (محجوز)`;
                     } else {
-                        btn.className = "slot-btn bg-zinc-900 border border-zinc-700 hover:border-amber-500 text-gray-200 py-2.5 rounded-xl text-xs transition font-semibold";
+                        btn.className = "slot-btn bg-zinc-900 border border-zinc-700 hover:border-amber-500 text-gray-200 py-3 rounded-xl text-sm transition font-semibold";
                         btn.innerText = slot;
                         btn.onclick = () => selectSlot(btn, slot);
                     }
@@ -148,12 +145,12 @@
 
         function selectSlot(btnElement, slotTime) {
             document.querySelectorAll(".slot-btn").forEach(b => {
-                b.classList.remove("gold-bg", "text-black", "border-amber-500");
+                b.classList.remove("gold-bg", "text-black", "border-amber-500", "font-bold");
                 b.classList.add("bg-zinc-900", "text-gray-200");
             });
 
             btnElement.classList.remove("bg-zinc-900", "text-gray-200");
-            btnElement.classList.add("gold-bg", "text-black", "border-amber-500");
+            btnElement.classList.add("gold-bg", "text-black", "border-amber-500", "font-bold");
             selectedTime = slotTime;
         }
 
@@ -161,7 +158,7 @@
             e.preventDefault();
 
             if (!selectedTime) {
-                alert("يرجى اختيار توقيت الحجز أولاً!");
+                alert("يرجى اختيار وقت الموعد من الجدول أولاً!");
                 return;
             }
 
@@ -176,7 +173,7 @@
 
             const submitBtn = document.getElementById("submitBtn");
             submitBtn.disabled = true;
-            submitBtn.innerText = "جاري الحفظ...";
+            submitBtn.innerText = "جاري التأكيد...";
 
             try {
                 const res = await fetch("/api/bookings", {
