@@ -138,16 +138,24 @@
             </div>
 
             <!-- Right Column -->
-            <div class="lg:col-span-7 space-y-4">
+            <div class="lg:col-span-7 space-y-6">
+                <!-- Bookings List -->
                 <div class="card-dark p-6 rounded-2xl space-y-4">
                     <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
                         <h2 class="text-base font-bold text-white">📋 قائمة الحجوزات</h2>
-                        <div class="flex gap-1.5">
-                            <button onclick="filterBookings('all')" id="fAll" class="f-btn px-3 py-1 rounded-lg text-xs gold-btn">الكل</button>
-                            <button onclick="filterBookings('today')" id="fToday" class="f-btn px-3 py-1 rounded-lg text-xs input-dark text-gray-400">اليوم</button>
-                        </div>
                     </div>
-                    <div id="bookingsList" class="space-y-3 max-h-[600px] overflow-y-auto pr-1"></div>
+                    <div id="bookingsList" class="space-y-3 max-h-[350px] overflow-y-auto pr-1"></div>
+                </div>
+
+                <!-- Loyalty Cards Management List -->
+                <div class="card-dark p-6 rounded-2xl space-y-4 border border-amber-500/20">
+                    <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+                        <h2 class="text-base font-bold gold-text">💳 بطاقات ولاء الزبائن</h2>
+                        <span id="loyaltyCount" class="text-xs text-gray-400">0 زبون</span>
+                    </div>
+                    <div id="loyaltyList" class="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+                        <!-- Loyalty cards injected via JS -->
+                    </div>
                 </div>
             </div>
 
@@ -195,10 +203,13 @@
 
                 const bookingsRes = await apiFetch("/api/admin/bookings");
                 rawBookings = await bookingsRes.json();
-                filterBookings('all');
+                renderBookings(rawBookings);
 
                 const blockedRes = await apiFetch("/api/admin/blocked-days");
                 renderBlockedDays(await blockedRes.json());
+
+                const loyaltyRes = await apiFetch("/api/admin/loyalty/cards");
+                renderLoyaltyCards(await loyaltyRes.json());
 
                 document.getElementById("authModal").classList.add("hidden");
                 document.getElementById("dashboardContent").classList.remove("hidden");
@@ -243,25 +254,93 @@
             }
         }
 
-        function filterBookings(type) {
-            renderBookings(rawBookings);
-        }
-
         function renderBookings(list) {
             const container = document.getElementById("bookingsList");
             container.innerHTML = "";
+            if (list.length === 0) {
+                container.innerHTML = "<p class='text-xs text-gray-500 text-center py-4'>لا توجد حجوزات حالياً.</p>";
+                return;
+            }
             list.forEach(item => {
                 const card = document.createElement("div");
-                card.className = "input-dark p-4 rounded-xl flex items-center justify-between text-xs";
+                card.className = "input-dark p-3 rounded-xl flex items-center justify-between text-xs";
                 card.innerHTML = `
                     <div>
-                        <p class="font-bold text-white text-sm">${item.client_name} - <span class="gold-text">${item.booking_time} م</span></p>
+                        <p class="font-bold text-white">${item.client_name} - <span class="gold-text">${item.booking_time} م</span></p>
                         <p class="text-gray-400">📞 ${item.client_phone} | ✂️ ${item.service_name} | 📅 ${item.booking_date}</p>
                     </div>
-                    <button onclick="cancelBooking(${item.id})" class="text-red-400 hover:text-white font-bold">إلغاء</button>
+                    <button onclick="cancelBooking(${item.id})" class="text-red-400 hover:text-white font-bold px-2 py-1 bg-red-950/40 rounded-lg">إلغاء</button>
                 `;
                 container.appendChild(card);
             });
+        }
+
+        function renderLoyaltyCards(list) {
+            const container = document.getElementById("loyaltyList");
+            container.innerHTML = "";
+            document.getElementById("loyaltyCount").innerText = `${list.length} زبون`;
+
+            if (list.length === 0) {
+                container.innerHTML = "<p class='text-xs text-gray-500 text-center py-4'>لا توجد بطاقات ولاء مسجلة بعد.</p>";
+                return;
+            }
+
+            list.forEach(card => {
+                const item = document.createElement("div");
+                item.className = "input-dark p-3.5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs";
+                item.innerHTML = `
+                    <div class="space-y-1">
+                        <p class="font-bold text-white text-sm">${card.client_name || 'بدون اسم'} <span class="text-gray-400 font-normal">(${card.client_phone})</span></p>
+                        <div class="flex items-center gap-3 text-gray-300">
+                            <span>⭐ النقاط: <strong class="gold-text text-sm">${card.points}/5</strong></span>
+                            <span>🎁 المكافآت: <strong class="text-emerald-400">${card.total_rewards || 0}</strong></span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="editPoints(${card.id}, ${card.points}, ${card.total_rewards})" class="bg-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-black px-3 py-1.5 rounded-lg font-bold transition">تعديل</button>
+                        <button onclick="deleteCard(${card.id})" class="bg-red-900/40 text-red-400 hover:bg-red-600 hover:text-white px-3 py-1.5 rounded-lg font-bold transition">حذف</button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        async function editPoints(cardId, currentPoints, currentRewards) {
+            const newPoints = prompt("أدخل عدد النقاط الجديدة (من 0 إلى 5):", currentPoints);
+            if (newPoints === null) return;
+            
+            const pointsVal = parseInt(newPoints);
+            if (isNaN(pointsVal) || pointsVal < 0 || pointsVal > 5) {
+                return alert("يرجى إدخال رقم صحيح بين 0 و 5");
+            }
+
+            try {
+                const res = await apiFetch(`/api/admin/loyalty/cards/${cardId}`, {
+                    method: "PUT",
+                    body: JSON.stringify({ points: pointsVal, total_rewards: currentRewards })
+                });
+                if (res.ok) {
+                    alert("✅ تم التحديث بنجاح!");
+                    loadDashboardData();
+                }
+            } catch (err) {
+                alert("❌ فشل التعديل!");
+            }
+        }
+
+        async function deleteCard(cardId) {
+            if (!confirm("هل أنت متأكد من حذف بطاقة الولاء لهذا الزبون؟")) return;
+            try {
+                const res = await apiFetch(`/api/admin/loyalty/cards/${cardId}`, {
+                    method: "DELETE"
+                });
+                if (res.ok) {
+                    alert("🗑️ تم الحذف بنجاح!");
+                    loadDashboardData();
+                }
+            } catch (err) {
+                alert("❌ فشل حذف البطاقة!");
+            }
         }
 
         function renderBlockedDays(list) {
