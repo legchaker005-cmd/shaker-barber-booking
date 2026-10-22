@@ -33,9 +33,9 @@ class UpdateLoyaltyRequest(BaseModel):
     points: int
     total_rewards: Optional[int] = 0
 
-# Helper function to check admin PIN
+# Helper function to check admin PIN (Updated to 4628)
 def verify_admin_pin(x_admin_pin: str = Header(None)):
-    if x_admin_pin != "1234":
+    if x_admin_pin != "4628":
         raise HTTPException(status_code=401, detail="رمز PIN غير صحيح!")
     return True
 
@@ -77,7 +77,6 @@ def create_booking(booking: BookingRequest):
     if not res.data:
         raise HTTPException(status_code=500, detail="حدث خطأ أثناء حفظ الحجز.")
         
-    # Ensure client has a loyalty card entry
     card = supabase.table("loyalty_cards").select("*").eq("client_phone", booking.client_phone).execute()
     if not card.data:
         supabase.table("loyalty_cards").insert({
@@ -88,8 +87,6 @@ def create_booking(booking: BookingRequest):
         }).execute()
 
     return {"message": "تم تأكيد حجزك بنجاح! ننتظرك في الموعد."}
-
-# --- LOYALTY PUBLIC ENDPOINT ---
 
 @app.get("/api/loyalty/{client_phone}")
 def get_loyalty_card(client_phone: str):
@@ -155,7 +152,6 @@ def unblock_day(blocked_id: int, authorized: bool = Depends(verify_admin_pin)):
     res = supabase.table("blocked_days").delete().eq("id", blocked_id).execute()
     return {"message": "تم إعادة فتح اليوم بنجاح."}
 
-# Loyalty Admin Management Endpoints
 @app.get("/api/admin/loyalty/cards")
 def get_all_loyalty_cards(authorized: bool = Depends(verify_admin_pin)):
     res = supabase.table("loyalty_cards").select("*").order("id", desc=True).execute()
