@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بطاقة الولاء الرقمية | صالون شاكر</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Tajawal', sans-serif; background-color: #0b0c10; color: #e5e7eb; }
+        .gold-btn { background: #eab308; color: #000; font-weight: 700; }
+        .gold-text { color: #eab308; }
+        .card-dark { background-color: #121318; border: 1px solid #1f222e; }
+        .input-dark { background-color: #181a20; border: 1px solid #282c3a; color: #f3f4f6; }
+    </style>
+</head>
+<body class="min-h-screen p-4 flex flex-col items-center justify-center">
+
+    <div class="max-w-md w-full space-y-6 text-center">
+        
+        <header>
+            <h1 class="text-3xl font-black gold-text">SHAKER BARBER</h1>
+            <p class="text-xs text-gray-400 mt-1">بطاقة مكافآت الحلاقة الرقمية ✂️</p>
+        </header>
+
+        <!-- Search Phone Form -->
+        <div id="phoneStep" class="card-dark p-6 rounded-2xl space-y-4">
+            <h2 class="text-sm font-bold text-white">عرض بطاقة الولاء الخاصة بك</h2>
+            <input type="tel" id="searchPhone" placeholder="أدخل رقم هاتفك (05XXXXXXXX)" dir="ltr" class="w-full input-dark rounded-xl px-4 py-3 text-sm text-center">
+            <button onclick="fetchCard()" class="w-full gold-btn py-3 rounded-xl text-sm shadow-lg">عرض البطاقة</button>
+        </div>
+
+        <!-- Loyalty Card UI (Hidden by default) -->
+        <div id="cardUI" class="hidden card-dark p-6 rounded-3xl border border-amber-500/40 shadow-2xl space-y-6 relative overflow-hidden">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+                <span class="text-xs font-bold gold-text">VIP LOYALTY CARD</span>
+                <span id="clientName" class="text-xs text-gray-300 font-bold">زبون صالون</span>
+            </div>
+
+            <!-- Points Badges (5 slots) -->
+            <div class="space-y-2">
+                <p class="text-xs text-gray-400">جمع 5 نقاط واحصل على <span class="gold-text font-bold">حلاقة مجانية!</span></p>
+                <div id="pointsGrid" class="flex justify-center gap-2 py-2">
+                    <!-- 5 Stamp circles injected via JS -->
+                </div>
+            </div>
+
+            <!-- QR Code Section -->
+            <div class="bg-white p-4 rounded-2xl inline-block shadow-inner mx-auto" id="qrcode"></div>
+            <p class="text-[11px] text-gray-400">امسح الكود عند الصالون لإضافة نقطة جديدة</p>
+
+            <button onclick="document.getElementById('phoneStep').classList.remove('hidden'); document.getElementById('cardUI').classList.add('hidden');" class="text-xs text-gray-500 underline">البحث برقم آخر</button>
+        </div>
+
+    </div>
+
+    <script>
+        async function fetchCard() {
+            const phone = document.getElementById("searchPhone").value;
+            if (!phone) return alert("يرجى إدخال رقم الهاتف!");
+
+            try {
+                const res = await fetch(`/api/loyalty/${phone}`);
+                if (!res.ok) {
+                    return alert("لم نجد بطاقة بهذا الرقم! يرجى الحجز أولاً لتفعيل بطاقتك.");
+                }
+                const data = await res.json();
+                
+                document.getElementById("clientName").innerText = data.client_name || "زبون صالون";
+                
+                // Render Points
+                const grid = document.getElementById("pointsGrid");
+                grid.innerHTML = "";
+                for (let i = 1; i <= 5; i++) {
+                    const circle = document.createElement("div");
+                    const active = i <= data.points;
+                    circle.className = `w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border ${active ? 'gold-btn border-amber-400 scale-110 shadow-md' : 'bg-zinc-800 text-gray-600 border-zinc-700'}`;
+                    circle.innerText = active ? "✂️" : i;
+                    grid.appendChild(circle);
+                }
+
+                // Render QR
+                const qrContainer = document.getElementById("qrcode");
+                qrContainer.innerHTML = "";
+                new QRCode(qrContainer, {
+                    text: data.client_phone,
+                    width: 140,
+                    height: 140
+                });
+
+                document.getElementById("phoneStep").classList.add("hidden");
+                document.getElementById("cardUI").classList.remove("hidden");
+
+            } catch (err) {
+                alert("حدث خطأ في جلب البطاقة!");
+            }
+        }
+    </script>
+</body>
+</html>
