@@ -3,158 +3,348 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة الحجوزات | SHAKER BARBER</title>
+    <title>لوحة التحكم | صالون شاكر</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Tajawal', sans-serif; background-color: #0b0b0b; color: #f3f4f6; }
-        .gold-bg { background: linear-gradient(135deg, #d4af37 0%, #f3e5ab 50%, #aa7c11 100%); }
-        .gold-text { background: linear-gradient(135deg, #d4af37 0%, #f3e5ab 50%, #aa7c11 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .glass-card { background: rgba(18, 18, 18, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, 0.2); }
+        body { font-family: 'Tajawal', sans-serif; background-color: #0b0c10; color: #e5e7eb; }
+        .gold-btn { background: #eab308; color: #000; font-weight: 700; }
+        .gold-btn:hover { background: #ca8a04; }
+        .gold-text { color: #eab308; }
+        .card-dark { background-color: #121318; border: 1px solid #1f222e; }
+        .input-dark { background-color: #181a20; border: 1px solid #282c3a; color: #f3f4f6; }
+        .input-dark:focus { border-color: #eab308; outline: none; }
     </style>
 </head>
-<body class="p-4 md:p-8 min-h-screen">
+<body class="min-h-screen p-4 md:p-8">
 
     <!-- Auth Modal -->
     <div id="authModal" class="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50">
-        <div class="glass-card p-6 rounded-2xl max-w-sm w-full text-center space-y-4">
-            <h2 class="text-xl font-bold gold-text">دخول لوحة الآدمن</h2>
-            <p class="text-xs text-gray-400">أدخل رمز الـ PIN المكون من 4 أرقام</p>
-            <input type="password" id="pinInput" maxlength="4" placeholder="****"
-                class="w-full text-center text-2xl tracking-widest bg-zinc-900 border border-zinc-700 py-3 rounded-xl focus:outline-none focus:border-amber-500">
-            <button onclick="checkPin()" class="w-full gold-bg text-black font-bold py-3 rounded-xl">دخول</button>
+        <div class="card-dark p-6 rounded-2xl max-w-sm w-full space-y-4 text-center">
+            <h2 class="text-xl font-bold gold-text">🔐 تسجيل الدخول للوحة الآدمن</h2>
+            <p class="text-xs text-gray-400">أدخل رمز الـ PIN الخاص بك للدخول</p>
+            <input type="password" id="pinInput" placeholder="أدخل رمز PIN (مثال: 1234)" class="w-full input-dark rounded-xl px-4 py-3 text-center text-lg tracking-widest">
+            <button onclick="loginAdmin()" class="w-full gold-btn py-3 rounded-xl shadow-lg">دخول</button>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div id="mainDashboard" class="hidden max-w-4xl mx-auto space-y-8">
+    <!-- Main Dashboard Container -->
+    <div id="dashboardContent" class="max-w-6xl mx-auto space-y-6 hidden">
         
-        <header class="flex justify-between items-center border-b border-zinc-800 pb-4">
+        <!-- Header -->
+        <header class="flex justify-between items-center bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800">
             <div>
-                <h1 class="text-2xl font-bold gold-text">لوحة إدارة الحجوزات ✂️</h1>
-                <p class="text-xs text-gray-400">تابع المواعيد وأدر أيام العمل بسهولة</p>
+                <h1 class="text-2xl font-extrabold gold-text">لوحة إدارة الحجوزات ✂️</h1>
+                <p class="text-xs text-gray-400">متابعة الحجوزات، الإحصائيات وأيام العمل</p>
             </div>
-            <button onclick="loadData()" class="bg-zinc-800 hover:bg-zinc-700 text-xs px-3 py-2 rounded-lg text-gray-300">تحديث البيانات 🔄</button>
+            <button onclick="loadDashboardData()" class="input-dark px-4 py-2 rounded-xl text-xs font-bold hover:border-amber-500">🔄 تحديث البيانات</button>
         </header>
 
-        <!-- Block Days Section -->
-        <section class="glass-card p-5 rounded-2xl space-y-4">
-            <h2 class="text-sm font-bold text-amber-400">🚫 إغلاق يوم (إضافة عطلة)</h2>
-            <form onsubmit="addBlockedDay(event)" class="flex flex-col md:flex-row gap-3">
-                <input type="date" id="blockDate" required class="bg-zinc-900 border border-zinc-700 px-3 py-2 text-xs rounded-xl focus:outline-none">
-                <input type="text" id="blockReason" placeholder="السبب (مثلاً: امتحانات / سفر)" class="flex-1 bg-zinc-900 border border-zinc-700 px-3 py-2 text-xs rounded-xl focus:outline-none">
-                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 text-xs rounded-xl">إغلاق هذا اليوم</button>
-            </form>
-            <div id="blockedDaysList" class="flex flex-wrap gap-2 pt-2"></div>
-        </section>
+        <!-- Stats Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="card-dark p-5 rounded-2xl flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-gray-400 mb-1">إجمالي الحجوزات</p>
 
-        <!-- Bookings List Section -->
-        <section class="space-y-4">
-            <h2 class="text-sm font-bold text-gray-300">📅 قائمة الحجوزات القادمة</h2>
-            <div id="bookingsContainer" class="space-y-3"></div>
-        </section>
+                    <h3 id="statBookings" class="text-2xl font-black text-white">0</h3>
+                </div>
+                <span class="text-3xl">📅</span>
+            </div>
+            <div class="card-dark p-5 rounded-2xl flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-gray-400 mb-1">الإيرادات المتوقعة</p>
+                    <h3 id="statRevenue" class="text-2xl font-black gold-text">0 TL</h3>
+                </div>
+                <span class="text-3xl">💰</span>
+            </div>
+            <div class="card-dark p-5 rounded-2xl flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-gray-400 mb-1">أيام العطل المغلقة</p>
+                    <h3 id="statBlocked" class="text-2xl font-black text-red-400">0</h3>
+                </div>
+                <span class="text-3xl">🚫</span>
+            </div>
+        </div>
+
+        <!-- Two Columns Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left Column: Controls (Manual Booking & Block Days) -->
+            <div class="lg:col-span-5 space-y-6">
+                
+                <!-- Section 1: Add Manual Booking -->
+                <div class="card-dark p-6 rounded-2xl space-y-4">
+                    <h2 class="text-base font-bold gold-text flex items-center gap-2">
+                        <span>➕</span> إضافة حجز يدوي (هاتف / صالون)
+                    </h2>
+                    <form onsubmit="handleManualBooking(event)" class="space-y-3">
+                        <input type="text" id="mClientName" required placeholder="اسم الزبون *" class="w-full input-dark rounded-xl px-3.5 py-2.5 text-xs">
+                        <input type="tel" id="mClientPhone" required placeholder="رقم الهاتف (05XXXXXXXX) *" dir="ltr" class="w-full input-dark rounded-xl px-3.5 py-2.5 text-xs text-right">
+                        
+                        <select id="mService" required class="w-full input-dark rounded-xl px-3.5 py-2.5 text-xs">
+                            <option value="تدرج احترافي Fade">تدرج احترافي Fade - 350 ل.ت</option>
+                            <option value="قص شعر عصري">قص شعر عصري - 250 ل.ت</option>
+                            <option value="تحديد وحلاقة اللحية">تحديد وحلاقة اللحية - 150 ل.ت</option>
+                        </select>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="date" id="mDate" required class="input-dark rounded-xl px-3 py-2 text-xs">
+                            <select id="mTime" required class="input-dark rounded-xl px-3 py-2 text-xs">
+                                <option value="18:00">18:00 م</option>
+                                <option value="18:55">18:55 م</option>
+                                <option value="19:50">19:50 م</option>
+                                <option value="20:45">20:45 م</option>
+                                <option value="21:40">21:40 م</option>
+                                <option value="22:35">22:35 م</option>
+                            </select>
+                        </div>
+                        
+                        <input type="text" id="mNotes" placeholder="ملاحظات خفيفة (اختياري)..." class="w-full input-dark rounded-xl px-3.5 py-2.5 text-xs">
+                        
+                        <button type="submit" class="w-full gold-btn py-2.5 rounded-xl text-xs shadow-md">حفظ الحجز فوراً</button>
+                    </form>
+                </div>
+
+                <!-- Section 2: Block Days -->
+                <div class="card-dark p-6 rounded-2xl space-y-4">
+                    <h2 class="text-base font-bold text-red-400 flex items-center gap-2">
+                        <span>🚫</span> إغلاق يوم (إضافة عطلة)
+                    </h2>
+                    <form onsubmit="handleBlockDay(event)" class="flex gap-2">
+                        <input type="date" id="blockDate" required class="input-dark rounded-xl px-3 py-2 text-xs">
+                        <input type="text" id="blockReason" placeholder="السبب (امتحانات / سفر)" class="w-full input-dark rounded-xl px-3 py-2 text-xs">
+                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-xl text-xs whitespace-nowrap">إغلاق</button>
+                    </form>
+
+                    <!-- Blocked List Badges -->
+                    <div id="blockedDaysList" class="flex flex-wrap gap-2 pt-2">
+                        <!-- Badges injected via JS -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Bookings List & Filter -->
+            <div class="lg:col-span-7 space-y-4">
+                <div class="card-dark p-6 rounded-2xl space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800 pb-3">
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <span>📋</span> قائمة الحجوزات
+                        </h2>
+                        <!-- Date Filter Buttons -->
+                        <div class="flex gap-1.5">
+                            <button onclick="filterBookings('all')" id="fAll" class="f-btn px-3 py-1 rounded-lg text-xs gold-btn">الكل</button>
+                            <button onclick="filterBookings('today')" id="fToday" class="f-btn px-3 py-1 rounded-lg text-xs input-dark text-gray-400">اليوم</button>
+                            <button onclick="filterBookings('tomorrow')" id="fTomorrow" class="f-btn px-3 py-1 rounded-lg text-xs input-dark text-gray-400">غداً</button>
+                        </div>
+                    </div>
+
+                    <!-- Bookings Container -->
+                    <div id="bookingsList" class="space-y-3 max-h-[600px] overflow-y-auto pr-1">
+                        <!-- Booking items injected via JS -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
     </div>
 
     <script>
-        const ADMIN_PIN = "1234";
+        let adminPIN = "";
+        let rawBookings = [];
 
-        function checkPin() {
-            const val = document.getElementById("pinInput").value;
-            if (val === ADMIN_PIN) {
-                document.getElementById("authModal").classList.add("hidden");
-                document.getElementById("mainDashboard").classList.remove("hidden");
-                loadData();
-            } else {
+        function loginAdmin() {
+            const input = document.getElementById("pinInput").value;
+            if (!input) return alert("يرجى إدخال رمز PIN");
+            
+            adminPIN = input;
+            loadDashboardData();
+        }
+
+        async function apiFetch(url, options = {}) {
+            options.headers = {
+                ...options.headers,
+                "x-admin-pin": adminPIN,
+                "Content-Type": "application/json"
+            };
+            const res = await fetch(url, options);
+            if (res.status === 401) {
                 alert("رمز PIN غير صحيح!");
+                document.getElementById("authModal").classList.remove("hidden");
+                document.getElementById("dashboardContent").classList.add("hidden");
+                throw new Error("Unauthorized");
+            }
+            return res;
+        }
+
+        async function loadDashboardData() {
+            try {
+                // Fetch Stats
+                const statsRes = await apiFetch("/api/admin/stats");
+                const stats = await statsRes.json();
+                
+                document.getElementById("statBookings").innerText = stats.total_bookings;
+                document.getElementById("statRevenue").innerText = `${stats.total_revenue} TL`;
+                document.getElementById("statBlocked").innerText = stats.total_blocked_days;
+
+                // Fetch Bookings
+                const bookingsRes = await apiFetch("/api/admin/bookings");
+                rawBookings = await bookingsRes.json();
+                filterBookings('all');
+
+                // Fetch Blocked Days
+                const blockedRes = await apiFetch("/api/admin/blocked-days");
+                const blockedDays = await blockedRes.json();
+                renderBlockedDays(blockedDays);
+
+                // Show Dashboard
+                document.getElementById("authModal").classList.add("hidden");
+                document.getElementById("dashboardContent").classList.remove("hidden");
+
+                // Set default date for manual booking to today
+                document.getElementById("mDate").value = new Date().toISOString().split('T')[0];
+
+            } catch (err) {
+                console.error(err);
             }
         }
 
-        async function loadData() {
-            loadBookings();
-            loadBlockedDays();
+        function filterBookings(type) {
+            document.querySelectorAll(".f-btn").forEach(b => b.className = "f-btn px-3 py-1 rounded-lg text-xs input-dark text-gray-400");
+            
+            const todayStr = new Date().toISOString().split('T')[0];
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+            let filtered = [...rawBookings];
+
+            if (type === 'today') {
+                document.getElementById("fToday").className = "f-btn px-3 py-1 rounded-lg text-xs gold-btn";
+                filtered = rawBookings.filter(b => b.booking_date === todayStr);
+            } else if (type === 'tomorrow') {
+                document.getElementById("fTomorrow").className = "f-btn px-3 py-1 rounded-lg text-xs gold-btn";
+                filtered = rawBookings.filter(b => b.booking_date === tomorrowStr);
+            } else {
+                document.getElementById("fAll").className = "f-btn px-3 py-1 rounded-lg text-xs gold-btn";
+            }
+
+            renderBookings(filtered);
         }
 
-        async function loadBookings() {
-            const container = document.getElementById("bookingsContainer");
-            container.innerHTML = "<p class='text-xs text-gray-500'>جاري جلب الحجوزات...</p>";
+        function renderBookings(list) {
+            const container = document.getElementById("bookingsList");
+            container.innerHTML = "";
 
-            try {
-                const res = await fetch("/api/bookings");
-                const bookings = await res.json();
+            if (list.length === 0) {
+                container.innerHTML = "<p class='text-xs text-gray-500 text-center py-8'>لا توجد حجوزات في هذه الفئة.</p>";
+                return;
+            }
 
-                if (!bookings || bookings.length === 0) {
-                    container.innerHTML = "<div class='glass-card p-6 text-center text-xs text-gray-400 rounded-xl'>لا توجد أي حجوزات مسجلة حالياً</div>";
-                    return;
-                }
-
-                container.innerHTML = "";
-                bookings.forEach(b => {
-                    const card = document.createElement("div");
-                    card.className = "glass-card p-4 rounded-xl flex justify-between items-center";
-                    card.innerHTML = `
-                        <div>
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="font-bold text-amber-400 text-sm">${b.client_name}</span>
-                                <span class="bg-amber-500/10 text-amber-400 text-[10px] px-2 py-0.5 rounded border border-amber-500/20">${b.booking_time}</span>
-                            </div>
-                            <div class="text-xs text-gray-400 space-y-0.5">
-                                <p>📞 ${b.client_phone} | ✂️ ${b.service_name}</p>
-                                <p>🗓️ ${b.booking_date} ${b.notes ? '| 📝 ' + b.notes : ''}</p>
-                            </div>
+            list.forEach(item => {
+                const card = document.createElement("div");
+                card.className = "input-dark p-4 rounded-xl flex items-center justify-between gap-3 border border-zinc-800/80 hover:border-zinc-700 transition";
+                card.innerHTML = `
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-white text-sm">${item.client_name}</span>
+                            <span class="gold-text text-xs bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">${item.booking_time} م</span>
                         </div>
-                        <button onclick="deleteBooking(${b.id})" class="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/20 px-3 py-1.5 text-xs rounded-lg transition">إلغاء</button>
-                    `;
-                    container.appendChild(card);
+                        <div class="text-xs text-gray-400 flex flex-wrap gap-x-3 gap-y-1">
+                            <span>📞 ${item.client_phone}</span>
+                            <span>✂️ ${item.service_name}</span>
+                            <span>📅 ${item.booking_date}</span>
+                        </div>
+                        ${item.notes ? `<p class="text-[11px] text-amber-200/70 bg-zinc-900 p-1.5 rounded-lg mt-1">📝 ${item.notes}</p>` : ''}
+                    </div>
+                    <button onclick="cancelBooking(${item.id})" class="bg-red-900/40 text-red-400 hover:bg-red-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                        إلغاء
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderBlockedDays(list) {
+            const container = document.getElementById("blockedDaysList");
+            container.innerHTML = "";
+
+            list.forEach(b => {
+                const badge = document.createElement("div");
+                badge.className = "bg-red-950/60 border border-red-800/50 text-red-300 px-2.5 py-1 rounded-xl text-xs flex items-center gap-2";
+                badge.innerHTML = `
+                    <span>📅 ${b.blocked_date} (${b.reason || 'عطلة'})</span>
+                    <button onclick="unblockDay(${b.id})" class="text-red-400 hover:text-white font-bold text-sm">×</button>
+                `;
+                container.appendChild(badge);
+            });
+        }
+
+        async function handleManualBooking(e) {
+            e.preventDefault();
+            const payload = {
+                client_name: document.getElementById("mClientName").value,
+                client_phone: document.getElementById("mClientPhone").value,
+                service_name: document.getElementById("mService").value,
+                booking_date: document.getElementById("mDate").value,
+                booking_time: document.getElementById("mTime").value,
+                notes: document.getElementById("mNotes").value
+            };
+
+            try {
+                const res = await apiFetch("/api/admin/manual-booking", {
+                    method: "POST",
+                    body: JSON.stringify(payload)
                 });
-            } catch (e) {
-                container.innerHTML = "<p class='text-xs text-red-400'>حدث خطأ في تحميل البيانات</p>";
+                if (res.ok) {
+                    alert("🎉 تم حفظ الحجز اليدوي بنجاح!");
+                    e.target.reset();
+                    loadDashboardData();
+                }
+            } catch (err) {
+                alert("❌ فشل إضافة الحجز!");
             }
         }
 
-        async function deleteBooking(id) {
-            if (!confirm("هل أنت تأكد من إلغاء هذا الحجز؟")) return;
-            await fetch(`/api/bookings/${id}`, { method: "DELETE" });
-            loadBookings();
-        }
-
-        async function loadBlockedDays() {
-            const list = document.getElementById("blockedDaysList");
-            try {
-                const res = await fetch("/api/blocked-days");
-                const days = await res.json();
-                list.innerHTML = "";
-
-                days.forEach(d => {
-                    const tag = document.createElement("div");
-                    tag.className = "bg-red-950/60 border border-red-800 text-red-300 text-xs px-3 py-1 rounded-full flex items-center gap-2";
-                    tag.innerHTML = `
-                        <span>🗓️ ${d.blocked_date} (${d.reason || 'عطلة'})</span>
-                        <button onclick="deleteBlockedDay(${d.id})" class="text-red-400 hover:text-white font-bold">×</button>
-                    `;
-                    list.appendChild(tag);
-                });
-            } catch (e) {}
-        }
-
-        async function addBlockedDay(e) {
+        async function handleBlockDay(e) {
             e.preventDefault();
-            const date = document.getElementById("blockDate").value;
-            const reason = document.getElementById("blockReason").value;
+            const payload = {
+                blocked_date: document.getElementById("blockDate").value,
+                reason: document.getElementById("blockReason").value || "عطلة"
+            };
 
-            await fetch("/api/blocked-days", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ blocked_date: date, reason: reason })
-            });
-
-            document.getElementById("blockDate").value = "";
-            document.getElementById("blockReason").value = "";
-            loadBlockedDays();
+            try {
+                const res = await apiFetch("/api/admin/block-day", {
+                    method: "POST",
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    e.target.reset();
+                    loadDashboardData();
+                }
+            } catch (err) {
+                alert("❌ فشل إغلاق اليوم!");
+            }
         }
 
-        async function deleteBlockedDay(id) {
-            await fetch(`/api/blocked-days/${id}`, { method: "DELETE" });
-            loadBlockedDays();
+        async function cancelBooking(id) {
+            if (!confirm("هل أنت تأكد من إغلاق هذا الحجز؟")) return;
+            try {
+                const res = await apiFetch(`/api/admin/bookings/${id}`, { method: "DELETE" });
+                if (res.ok) loadDashboardData();
+            } catch (err) {
+                alert("❌ حدث خطأ أثناء الإلغاء!");
+            }
+        }
+
+        async function unblockDay(id) {
+            try {
+                const res = await apiFetch(`/api/admin/unblock-day/${id}`, { method: "DELETE" });
+                if (res.ok) loadDashboardData();
+            } catch (err) {
+                alert("❌ حدث خطأ!");
+            }
         }
     </script>
 </body>
