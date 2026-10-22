@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SHAKER BARBER | صالون شاكر للحلاقة</title>
+    
+    <!-- PWA Setup -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#eab308">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ShakerBarber">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2821/2821012.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <style>
@@ -166,14 +175,15 @@
     </div>
 
     <script>
-        // ضع رقم هاتفك للواتساب هنا مع مفتاح الدولة (مثال لتركيا: 905XXXXXXXXX)
-        const MY_WHATSAPP_NUMBER = "905012359597"; 
-
+        const MY_WHATSAPP_NUMBER = "905000000000"; 
         const allSlots = ["18:00", "18:55", "19:50", "20:45", "21:40", "22:35"];
         let selectedTime = "18:00";
         let selectedDayLabel = "اليوم";
 
         document.addEventListener("DOMContentLoaded", () => {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js');
+            }
             selectDayQuick('today');
             updateSummary();
         });
