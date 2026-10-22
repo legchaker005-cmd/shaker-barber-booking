@@ -6,7 +6,6 @@ import typing
 
 app = FastAPI(title="نظام حجز مواعيد الحلاقة - شاكر")
 
-# تفعيل CORS للسماح بالاتصالات
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,7 +14,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# نموذج بيانات الحجز الوارد من الزبون
 class BookingCreate(BaseModel):
     client_name: str
     client_phone: str
@@ -24,50 +22,56 @@ class BookingCreate(BaseModel):
     booking_time: str
     notes: typing.Optional[str] = None
 
-# ذاكرة مؤقتة لحفظ الحجوزات (تناسب بيئة Serverless مثل Vercel كبداية)
+class StatusUpdate(BaseModel):
+    status: str
+
+# ذاكرة مؤقتة للحجوزات
 fake_db_bookings = []
 
-# 1. نقطة النهاية لعرض صفحة الويب للزبائن مباشرة
+# 1. صفحة الحجز للزبائن
 @app.get("/", response_class=HTMLResponse)
 def read_root():
     try:
         with open("index.html", "r", encoding="utf-8") as f:
             return f.read()
     except FileNotFoundError:
-        return """
-        <!DOCTYPE html>
-        <html lang="ar" dir="rtl">
-        <head>
-            <meta charset="UTF-8">
-            <title>حلاقة شاكر</title>
-            <style>
-                body { font-family: Tahoma, sans-serif; text-align: center; padding: 50px; background: #121212; color: #fff; }
-                h1 { color: #d4af37; }
-            </style>
-        </head>
-        <body>
-            <h1>مرحباً بك في نظام حجز مواعيد الحلاقة</h1>
-            <p>يرجى التأكد من رفع ملف index.html في نفس المجلد مع main.py</p>
-        </body>
-        </html>
-        """
+        return "<h1>يرجى التأكد من وجود ملف index.html</h1>"
 
-# 2. نقطة النهاية لإنشاء حجز جديد
+# 2. صفحة لوحة التحكم الإدارية لشاكر
+@app.get("/admin", response_class=HTMLResponse)
+def read_admin():
+    try:
+        with open("admin.html", "r", encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        return "<h1>يرجى التأكد من وجود ملف admin.html</h1>"
+
+# 3. إنشاء حجز جديد
 @app.post("/api/bookings", status_code=status.HTTP_201_CREATED)
 def create_booking(booking: BookingCreate):
     new_booking = booking.dict()
     new_booking["id"] = len(fake_db_bookings) + 1
     new_booking["status"] = "مؤكد"
-    
     fake_db_bookings.append(new_booking)
-    
-    return {
-        "success": true,
-        "message": "تم تأكيد حجزك بنجاح!",
-        "data": new_booking
-    }
+    return {"success": True, "message": "تم تأكيد الحجز بنجاح!", "data": new_booking}
 
-# 3. نقطة النهاية لجلب جميع الحجوزات (لوحة التحكم)
+# 4. جلب جميع الحجوزات
 @app.get("/api/bookings")
 def get_all_bookings():
     return fake_db_bookings
+
+# 5. تحديث حالة الحجز (مكتمل / ملغي)
+@app.patch("/api/bookings/{booking_id}")
+def update_booking_status(booking_id: int, update: StatusUpdate):
+    for b in fake_db_bookings:
+        if b["id"] == booking_id:
+            b["status"] = update.status
+            return {"success": True, "data": b}
+    raise HTTPException(status_code=404, detail="الحجز غير موجود")
+
+# 6. حذف حجز
+@app.delete("/api/bookings/{booking_id}")
+def delete_booking(booking_id: int):
+    global fake_db_bookings
+    fake_db_bookings = [b for b in fake_db_bookings if b["id"] != booking_id]
+    return {"success": True, "message": "تم حذف الحجز بنجاح"}
