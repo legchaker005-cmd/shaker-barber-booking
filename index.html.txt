@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حلاقة شاكر - حجز المواعيد</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --accent-color: #d4af37;
+            --accent-hover: #b89728;
+            --text-color: #f0f0f0;
+            --text-muted: #aaaaaa;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        h2 {
+            text-align: center;
+            color: var(--accent-color);
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background-color: #2a2a2a;
+            color: #fff;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--accent-color);
+            color: #121212;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+        #message {
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>✂️ حلاقة شاكر - حجز موعد</h2>
+    <form id="bookingForm">
+        <div class="form-group">
+            <label for="client_name">الاسم الكريم</label>
+            <input type="text" id="client_name" required placeholder="أدخل اسمك الكامل">
+        </div>
+
+        <div class="form-group">
+            <label for="client_phone">رقم الهاتف</label>
+            <input type="tel" id="client_phone" required placeholder="05xxxxxxxx">
+        </div>
+
+        <div class="form-group">
+            <label for="service_name">اختر الخدمة</label>
+            <select id="service_name">
+                <option value="قص شعر عادي">قص شعر عادي</option>
+                <option value="تدرج احترافي (Fade)">تدرج احترافي (Fade)</option>
+                <option value="قص شعر + تحديد لحية">قص شعر + تحديد لحية</option>
+                <option value="تحديد لحية فقط">تحديد لحية فقط</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="booking_date">تاريخ الموعد</label>
+            <input type="date" id="booking_date" required>
+        </div>
+
+        <div class="form-group">
+            <label for="booking_time">وقت الموعد</label>
+            <input type="time" id="booking_time" required>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">ملاحظات إضافية (اختياري)</label>
+            <textarea id="notes" rows="2" placeholder="تفاصيل إضافية عن القصة المفضلة..."></textarea>
+        </div>
+
+        <button type="submit">تأكيد حجز الموعد</button>
+        <div id="message"></div>
+    </form>
+</div>
+
+<script>
+    document.getElementById('bookingForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const data = {
+            client_name: document.getElementById('client_name').value,
+            client_phone: document.getElementById('client_phone').value,
+            service_name: document.getElementById('service_name').value,
+            booking_date: document.getElementById('booking_date').value,
+            booking_time: document.getElementById('booking_time').value,
+            notes: document.getElementById('notes').value
+        };
+
+        const msgDiv = document.getElementById('message');
+        msgDiv.style.color = "#d4af37";
+        msgDiv.innerText = "جاري إرسال الحجز...";
+
+        try {
+            const response = await fetch('/api/bookings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                msgDiv.style.color = "#4CAF50";
+                msgDiv.innerText = "✅ تم حجز موعدك بنجاح!";
+                document.getElementById('bookingForm').reset();
+            } else {
+                msgDiv.style.color = "#f44336";
+                msgDiv.innerText = "❌ حدث خطأ: " + (result.detail || "يرجى المحاولة لاحقاً");
+            }
+        } catch (error) {
+            msgDiv.style.color = "#f44336";
+            msgDiv.innerText = "❌ تعذر الاتصال بالسيرفر.";
+        }
+    });
+</script>
+
+</body>
+</html>
