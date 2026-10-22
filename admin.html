@@ -3,131 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم الإدارية | SHAKER BARBER</title>
+    <title>إدارة الحجوزات | SHAKER BARBER</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        gold: { 400: '#facc15', 500: '#eab308', 600: '#ca8a04', 700: '#a16207' },
-                        dark: { 900: '#0f0f11', 800: '#18181b', 700: '#27272a', 600: '#3f3f46' }
-                    }
-                }
-            }
-        }
-    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Tajawal', sans-serif; background-color: #0b0b0b; color: #f3f4f6; }
+        .gold-bg { background: linear-gradient(135deg, #d4af37 0%, #f3e5ab 50%, #aa7c11 100%); }
+        .gold-text { background: linear-gradient(135deg, #d4af37 0%, #f3e5ab 50%, #aa7c11 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .glass-card { background: rgba(18, 18, 18, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, 0.2); }
+    </style>
 </head>
-<body class="bg-dark-900 text-gray-100 font-sans min-h-screen antialiased">
+<body class="p-4 md:p-8 min-h-screen">
 
-    <!-- Login Screen -->
-    <div id="login-screen" class="min-h-screen flex items-center justify-center p-4">
-        <div class="bg-dark-800 p-8 rounded-2xl border border-dark-700 max-w-sm w-full space-y-6 text-center shadow-2xl">
-            <div class="w-12 h-12 bg-gold-500/10 text-gold-400 rounded-full flex items-center justify-center mx-auto border border-gold-500/20">
-                <i data-lucide="lock" class="w-6 h-6"></i>
-            </div>
-            <div>
-                <h2 class="text-xl font-bold text-white">لوحة تحكم الحلاق شاكر</h2>
-                <p class="text-xs text-gray-400 mt-1">أدخل الرمز السري للدخول للإدارة</p>
-            </div>
-            <input type="password" id="pin-input" placeholder="****" class="w-full bg-dark-900 border border-dark-700 rounded-xl px-4 py-3 text-center text-xl text-white tracking-widest focus:outline-none focus:border-gold-500">
-            <button onclick="checkPin()" class="w-full py-3 bg-gold-500 text-black font-bold rounded-xl hover:bg-gold-600 transition-colors">دخول</button>
-            <p id="pin-error" class="text-xs text-red-400 hidden">الرمز السري غير صحيح!</p>
+    <!-- Auth Modal -->
+    <div id="authModal" class="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50">
+        <div class="glass-card p-6 rounded-2xl max-w-sm w-full text-center space-y-4">
+            <h2 class="text-xl font-bold gold-text">دخول لوحة الآدمن</h2>
+            <p class="text-xs text-gray-400">أدخل رمز الـ PIN المكون من 4 أرقام</p>
+            <input type="password" id="pinInput" maxlength="4" placeholder="****"
+                class="w-full text-center text-2xl tracking-widest bg-zinc-900 border border-zinc-700 py-3 rounded-xl focus:outline-none focus:border-amber-500">
+            <button onclick="checkPin()" class="w-full gold-bg text-black font-bold py-3 rounded-xl">دخول</button>
         </div>
     </div>
 
-    <!-- Admin Dashboard Screen -->
-    <div id="admin-screen" class="hidden max-w-6xl mx-auto px-4 py-8 space-y-6">
-        <div class="flex justify-between items-center border-b border-dark-700 pb-4">
+    <!-- Main Content -->
+    <div id="mainDashboard" class="hidden max-w-4xl mx-auto space-y-8">
+        
+        <header class="flex justify-between items-center border-b border-zinc-800 pb-4">
             <div>
-                <h2 class="text-xl font-bold text-white">جدول إدارة الحجوزات والزبائن</h2>
-                <p class="text-xs text-gray-400">إلغاء وحذف وتعديل المواعيد</p>
+                <h1 class="text-2xl font-bold gold-text">لوحة إدارة الحجوزات ✂️</h1>
+                <p class="text-xs text-gray-400">تابع المواعيد وأدر أيام العمل بسهولة</p>
             </div>
-            <div class="flex gap-2">
-                <button onclick="fetchBookings()" class="px-4 py-2 bg-dark-800 hover:bg-dark-700 border border-dark-700 text-gold-400 rounded-xl text-xs font-bold flex items-center gap-1.5">
-                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-                    <span>تحديث</span>
-                </button>
-                <a href="/" class="px-4 py-2 bg-gold-500 text-black font-bold rounded-xl text-xs">عرض موقع الحجز</a>
-            </div>
-        </div>
+            <button onclick="loadData()" class="bg-zinc-800 hover:bg-zinc-700 text-xs px-3 py-2 rounded-lg text-gray-300">تحديث البيانات 🔄</button>
+        </header>
 
-        <div class="bg-dark-800 rounded-2xl border border-dark-700 overflow-hidden shadow-xl">
-            <div class="overflow-x-auto">
-                <table class="w-full text-right text-sm">
-                    <thead class="text-xs text-gray-400 bg-dark-900 border-b border-dark-700">
-                        <tr>
-                            <th class="p-3">#</th>
-                            <th class="p-3">الزبون</th>
-                            <th class="p-3">الهاتف</th>
-                            <th class="p-3">الخدمة</th>
-                            <th class="p-3">الموعد</th>
-                            <th class="p-3">ملاحظات</th>
-                            <th class="p-3 text-center">إجراءات الحلاق</th>
-                        </tr>
-                    </thead>
-                    <tbody id="admin-table-body" class="divide-y divide-dark-700">
-                        <tr><td colspan="7" class="text-center p-6 text-gray-500">جاري تحميل الحجوزات...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <!-- Block Days Section -->
+        <section class="glass-card p-5 rounded-2xl space-y-4">
+            <h2 class="text-sm font-bold text-amber-400">🚫 إغلاق يوم (إضافة عطلة)</h2>
+            <form onsubmit="addBlockedDay(event)" class="flex flex-col md:flex-row gap-3">
+                <input type="date" id="blockDate" required class="bg-zinc-900 border border-zinc-700 px-3 py-2 text-xs rounded-xl focus:outline-none">
+                <input type="text" id="blockReason" placeholder="السبب (مثلاً: امتحانات / سفر)" class="flex-1 bg-zinc-900 border border-zinc-700 px-3 py-2 text-xs rounded-xl focus:outline-none">
+                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 text-xs rounded-xl">إغلاق هذا اليوم</button>
+            </form>
+            <div id="blockedDaysList" class="flex flex-wrap gap-2 pt-2"></div>
+        </section>
+
+        <!-- Bookings List Section -->
+        <section class="space-y-4">
+            <h2 class="text-sm font-bold text-gray-300">📅 قائمة الحجوزات القادمة</h2>
+            <div id="bookingsContainer" class="space-y-3"></div>
+        </section>
     </div>
 
     <script>
-        const PIN = "1234"; // 🔑 الرمز السري الخاص بك للوحة الأدمن
-
-        window.onload = () => { lucide.createIcons(); };
+        const ADMIN_PIN = "1234";
 
         function checkPin() {
-            const input = document.getElementById('pin-input').value;
-            if (input === PIN) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('admin-screen').classList.remove('hidden');
-                fetchBookings();
+            const val = document.getElementById("pinInput").value;
+            if (val === ADMIN_PIN) {
+                document.getElementById("authModal").classList.add("hidden");
+                document.getElementById("mainDashboard").classList.remove("hidden");
+                loadData();
             } else {
-                document.getElementById('pin-error').classList.remove('hidden');
+                alert("رمز PIN غير صحيح!");
             }
         }
 
-        async function fetchBookings() {
-            const tbody = document.getElementById('admin-table-body');
-            try {
-                const res = await fetch('/api/bookings');
-                const data = await res.json();
+        async function loadData() {
+            loadBookings();
+            loadBlockedDays();
+        }
 
-                if (data.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="7" class="text-center p-6 text-gray-500">لا توجد حجوزات مسجلة حالياً</td></tr>`;
+        async function loadBookings() {
+            const container = document.getElementById("bookingsContainer");
+            container.innerHTML = "<p class='text-xs text-gray-500'>جاري جلب الحجوزات...</p>";
+
+            try {
+                const res = await fetch("/api/bookings");
+                const bookings = await res.json();
+
+                if (!bookings || bookings.length === 0) {
+                    container.innerHTML = "<div class='glass-card p-6 text-center text-xs text-gray-400 rounded-xl'>لا توجد أي حجوزات مسجلة حالياً</div>";
                     return;
                 }
 
-                tbody.innerHTML = data.map(b => `
-                    <tr class="hover:bg-dark-900/50 transition-colors">
-                        <td class="p-3 text-xs text-gray-400">#${b.id}</td>
-                        <td class="p-3 font-semibold text-white">${b.client_name}</td>
-                        <td class="p-3 text-xs text-gold-400 font-mono" dir="ltr"><a href="tel:${b.client_phone}">${b.client_phone}</a></td>
-                        <td class="p-3 text-xs text-gray-300">${b.service_name}</td>
-                        <td class="p-3 text-xs text-gold-400 font-semibold">${b.booking_date} • ${b.booking_time}</td>
-                        <td class="p-3 text-xs text-gray-400">${b.notes || '--'}</td>
-                        <td class="p-3 text-center">
-                            <button onclick="cancelBooking(${b.id})" class="px-3 py-1 bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white rounded-lg text-xs font-bold transition-colors">
-                                🗑 إلغاء الحجز
-                            </button>
-                        </td>
-                    </tr>
-                `).join('');
-            } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center p-6 text-red-400">خطأ أثناء التحميل</td></tr>`;
+                container.innerHTML = "";
+                bookings.forEach(b => {
+                    const card = document.createElement("div");
+                    card.className = "glass-card p-4 rounded-xl flex justify-between items-center";
+                    card.innerHTML = `
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="font-bold text-amber-400 text-sm">${b.client_name}</span>
+                                <span class="bg-amber-500/10 text-amber-400 text-[10px] px-2 py-0.5 rounded border border-amber-500/20">${b.booking_time}</span>
+                            </div>
+                            <div class="text-xs text-gray-400 space-y-0.5">
+                                <p>📞 ${b.client_phone} | ✂️ ${b.service_name}</p>
+                                <p>🗓️ ${b.booking_date} ${b.notes ? '| 📝 ' + b.notes : ''}</p>
+                            </div>
+                        </div>
+                        <button onclick="deleteBooking(${b.id})" class="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/20 px-3 py-1.5 text-xs rounded-lg transition">إلغاء</button>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (e) {
+                container.innerHTML = "<p class='text-xs text-red-400'>حدث خطأ في تحميل البيانات</p>";
             }
         }
 
-        async function cancelBooking(id) {
-            if (confirm("هل أنت تأكد من إلغاء وحذف هذا الحجز؟")) {
-                await fetch(`/api/bookings/${id}`, { method: 'DELETE' });
-                fetchBookings();
-            }
+        async function deleteBooking(id) {
+            if (!confirm("هل أنت تأكد من إلغاء هذا الحجز؟")) return;
+            await fetch(`/api/bookings/${id}`, { method: "DELETE" });
+            loadBookings();
+        }
+
+        async function loadBlockedDays() {
+            const list = document.getElementById("blockedDaysList");
+            try {
+                const res = await fetch("/api/blocked-days");
+                const days = await res.json();
+                list.innerHTML = "";
+
+                days.forEach(d => {
+                    const tag = document.createElement("div");
+                    tag.className = "bg-red-950/60 border border-red-800 text-red-300 text-xs px-3 py-1 rounded-full flex items-center gap-2";
+                    tag.innerHTML = `
+                        <span>🗓️ ${d.blocked_date} (${d.reason || 'عطلة'})</span>
+                        <button onclick="deleteBlockedDay(${d.id})" class="text-red-400 hover:text-white font-bold">×</button>
+                    `;
+                    list.appendChild(tag);
+                });
+            } catch (e) {}
+        }
+
+        async function addBlockedDay(e) {
+            e.preventDefault();
+            const date = document.getElementById("blockDate").value;
+            const reason = document.getElementById("blockReason").value;
+
+            await fetch("/api/blocked-days", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ blocked_date: date, reason: reason })
+            });
+
+            document.getElementById("blockDate").value = "";
+            document.getElementById("blockReason").value = "";
+            loadBlockedDays();
+        }
+
+        async function deleteBlockedDay(id) {
+            await fetch(`/api/blocked-days/${id}`, { method: "DELETE" });
+            loadBlockedDays();
         }
     </script>
 </body>
