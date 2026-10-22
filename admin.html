@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة التحكم | صالون شاكر</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Tajawal', sans-serif; background-color: #0b0c10; color: #e5e7eb; }
@@ -13,7 +14,6 @@
         .gold-text { color: #eab308; }
         .card-dark { background-color: #121318; border: 1px solid #1f222e; }
         .input-dark { background-color: #181a20; border: 1px solid #282c3a; color: #f3f4f6; }
-        .input-dark:focus { border-color: #eab308; outline: none; }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8">
@@ -35,17 +35,36 @@
         <header class="flex justify-between items-center bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800">
             <div>
                 <h1 class="text-2xl font-extrabold gold-text">لوحة إدارة الحجوزات ✂️</h1>
-                <p class="text-xs text-gray-400">متابعة الحجوزات، الإحصائيات وأيام العمل</p>
+                <p class="text-xs text-gray-400">متابعة الحجوزات والولاء وأيام العمل</p>
             </div>
             <button onclick="loadDashboardData()" class="input-dark px-4 py-2 rounded-xl text-xs font-bold hover:border-amber-500">🔄 تحديث البيانات</button>
         </header>
 
+        <!-- QR Scanner Section -->
+        <div class="card-dark p-6 rounded-2xl space-y-4 border border-amber-500/30">
+            <h2 class="text-base font-bold gold-text flex items-center gap-2">
+                <span>📷</span> مسح رمز QR كارت الولاء للزبون
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                <div>
+                    <div id="reader" class="rounded-2xl overflow-hidden border border-zinc-700 bg-black max-w-xs mx-auto"></div>
+                    <button onclick="startScanner()" class="w-full gold-btn py-2.5 rounded-xl text-xs mt-3">تشغيل الكاميرا للمسح</button>
+                </div>
+                <div class="space-y-3">
+                    <p class="text-xs text-gray-400">أو أضف نقطة يدوياً برقم هاتف الزبون:</p>
+                    <div class="flex gap-2">
+                        <input type="tel" id="loyaltyPhoneInput" placeholder="05XXXXXXXX" dir="ltr" class="input-dark rounded-xl px-3 py-2 text-xs w-full text-right">
+                        <button onclick="addPointManual()" class="gold-btn px-4 py-2 rounded-xl text-xs whitespace-nowrap">+1 نقطة</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Stats Cards Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div class="card-dark p-5 rounded-2xl flex items-center justify-between">
                 <div>
                     <p class="text-xs text-gray-400 mb-1">إجمالي الحجوزات</p>
-
                     <h3 id="statBookings" class="text-2xl font-black text-white">0</h3>
                 </div>
                 <span class="text-3xl">📅</span>
@@ -59,6 +78,13 @@
             </div>
             <div class="card-dark p-5 rounded-2xl flex items-center justify-between">
                 <div>
+                    <p class="text-xs text-gray-400 mb-1">زبائن كروت الولاء</p>
+                    <h3 id="statClients" class="text-2xl font-black text-amber-400">0</h3>
+                </div>
+                <span class="text-3xl">💳</span>
+            </div>
+            <div class="card-dark p-5 rounded-2xl flex items-center justify-between">
+                <div>
                     <p class="text-xs text-gray-400 mb-1">أيام العطل المغلقة</p>
                     <h3 id="statBlocked" class="text-2xl font-black text-red-400">0</h3>
                 </div>
@@ -69,14 +95,11 @@
         <!-- Two Columns Layout -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
-            <!-- Left Column: Controls (Manual Booking & Block Days) -->
+            <!-- Left Column -->
             <div class="lg:col-span-5 space-y-6">
-                
-                <!-- Section 1: Add Manual Booking -->
+                <!-- Manual Booking Form -->
                 <div class="card-dark p-6 rounded-2xl space-y-4">
-                    <h2 class="text-base font-bold gold-text flex items-center gap-2">
-                        <span>➕</span> إضافة حجز يدوي (هاتف / صالون)
-                    </h2>
+                    <h2 class="text-base font-bold gold-text">➕ إضافة حجز يدوي</h2>
                     <form onsubmit="handleManualBooking(event)" class="space-y-3">
                         <input type="text" id="mClientName" required placeholder="اسم الزبون *" class="w-full input-dark rounded-xl px-3.5 py-2.5 text-xs">
                         <input type="tel" id="mClientPhone" required placeholder="رقم الهاتف (05XXXXXXXX) *" dir="ltr" class="w-full input-dark rounded-xl px-3.5 py-2.5 text-xs text-right">
@@ -98,51 +121,33 @@
                                 <option value="22:35">22:35 م</option>
                             </select>
                         </div>
-                        
-                        <input type="text" id="mNotes" placeholder="ملاحظات خفيفة (اختياري)..." class="w-full input-dark rounded-xl px-3.5 py-2.5 text-xs">
-                        
-                        <button type="submit" class="w-full gold-btn py-2.5 rounded-xl text-xs shadow-md">حفظ الحجز فوراً</button>
+                        <button type="submit" class="w-full gold-btn py-2.5 rounded-xl text-xs shadow-md">حفظ الحجز</button>
                     </form>
                 </div>
 
-                <!-- Section 2: Block Days -->
+                <!-- Block Days -->
                 <div class="card-dark p-6 rounded-2xl space-y-4">
-                    <h2 class="text-base font-bold text-red-400 flex items-center gap-2">
-                        <span>🚫</span> إغلاق يوم (إضافة عطلة)
-                    </h2>
+                    <h2 class="text-base font-bold text-red-400">🚫 إغلاق يوم عطلة</h2>
                     <form onsubmit="handleBlockDay(event)" class="flex gap-2">
                         <input type="date" id="blockDate" required class="input-dark rounded-xl px-3 py-2 text-xs">
-                        <input type="text" id="blockReason" placeholder="السبب (امتحانات / سفر)" class="w-full input-dark rounded-xl px-3 py-2 text-xs">
-                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-xl text-xs whitespace-nowrap">إغلاق</button>
+                        <input type="text" id="blockReason" placeholder="السبب" class="w-full input-dark rounded-xl px-3 py-2 text-xs">
+                        <button type="submit" class="bg-red-600 text-white font-bold px-4 py-2 rounded-xl text-xs">إغلاق</button>
                     </form>
-
-                    <!-- Blocked List Badges -->
-                    <div id="blockedDaysList" class="flex flex-wrap gap-2 pt-2">
-                        <!-- Badges injected via JS -->
-                    </div>
+                    <div id="blockedDaysList" class="flex flex-wrap gap-2 pt-2"></div>
                 </div>
-
             </div>
 
-            <!-- Right Column: Bookings List & Filter -->
+            <!-- Right Column -->
             <div class="lg:col-span-7 space-y-4">
                 <div class="card-dark p-6 rounded-2xl space-y-4">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800 pb-3">
-                        <h2 class="text-base font-bold text-white flex items-center gap-2">
-                            <span>📋</span> قائمة الحجوزات
-                        </h2>
-                        <!-- Date Filter Buttons -->
+                    <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+                        <h2 class="text-base font-bold text-white">📋 قائمة الحجوزات</h2>
                         <div class="flex gap-1.5">
                             <button onclick="filterBookings('all')" id="fAll" class="f-btn px-3 py-1 rounded-lg text-xs gold-btn">الكل</button>
                             <button onclick="filterBookings('today')" id="fToday" class="f-btn px-3 py-1 rounded-lg text-xs input-dark text-gray-400">اليوم</button>
-                            <button onclick="filterBookings('tomorrow')" id="fTomorrow" class="f-btn px-3 py-1 rounded-lg text-xs input-dark text-gray-400">غداً</button>
                         </div>
                     </div>
-
-                    <!-- Bookings Container -->
-                    <div id="bookingsList" class="space-y-3 max-h-[600px] overflow-y-auto pr-1">
-                        <!-- Booking items injected via JS -->
-                    </div>
+                    <div id="bookingsList" class="space-y-3 max-h-[600px] overflow-y-auto pr-1"></div>
                 </div>
             </div>
 
@@ -153,11 +158,11 @@
     <script>
         let adminPIN = "";
         let rawBookings = [];
+        let html5QrcodeScanner = null;
 
         function loginAdmin() {
             const input = document.getElementById("pinInput").value;
             if (!input) return alert("يرجى إدخال رمز PIN");
-            
             adminPIN = input;
             loadDashboardData();
         }
@@ -180,29 +185,23 @@
 
         async function loadDashboardData() {
             try {
-                // Fetch Stats
                 const statsRes = await apiFetch("/api/admin/stats");
                 const stats = await statsRes.json();
                 
                 document.getElementById("statBookings").innerText = stats.total_bookings;
                 document.getElementById("statRevenue").innerText = `${stats.total_revenue} TL`;
                 document.getElementById("statBlocked").innerText = stats.total_blocked_days;
+                document.getElementById("statClients").innerText = stats.total_clients || 0;
 
-                // Fetch Bookings
                 const bookingsRes = await apiFetch("/api/admin/bookings");
                 rawBookings = await bookingsRes.json();
                 filterBookings('all');
 
-                // Fetch Blocked Days
                 const blockedRes = await apiFetch("/api/admin/blocked-days");
-                const blockedDays = await blockedRes.json();
-                renderBlockedDays(blockedDays);
+                renderBlockedDays(await blockedRes.json());
 
-                // Show Dashboard
                 document.getElementById("authModal").classList.add("hidden");
                 document.getElementById("dashboardContent").classList.remove("hidden");
-
-                // Set default date for manual booking to today
                 document.getElementById("mDate").value = new Date().toISOString().split('T')[0];
 
             } catch (err) {
@@ -210,57 +209,56 @@
             }
         }
 
-        function filterBookings(type) {
-            document.querySelectorAll(".f-btn").forEach(b => b.className = "f-btn px-3 py-1 rounded-lg text-xs input-dark text-gray-400");
-            
-            const todayStr = new Date().toISOString().split('T')[0];
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const tomorrowStr = tomorrow.toISOString().split('T')[0];
+        function startScanner() {
+            if (html5QrcodeScanner) return;
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: 250 },
+                async (scannedPhone) => {
+                    html5QrcodeScanner.stop();
+                    html5QrcodeScanner = null;
+                    await submitLoyaltyPoint(scannedPhone);
+                }
+            );
+        }
 
-            let filtered = [...rawBookings];
+        async function addPointManual() {
+            const phone = document.getElementById("loyaltyPhoneInput").value;
+            if (!phone) return alert("أدخل رقم الهاتف أولاً");
+            await submitLoyaltyPoint(phone);
+        }
 
-            if (type === 'today') {
-                document.getElementById("fToday").className = "f-btn px-3 py-1 rounded-lg text-xs gold-btn";
-                filtered = rawBookings.filter(b => b.booking_date === todayStr);
-            } else if (type === 'tomorrow') {
-                document.getElementById("fTomorrow").className = "f-btn px-3 py-1 rounded-lg text-xs gold-btn";
-                filtered = rawBookings.filter(b => b.booking_date === tomorrowStr);
-            } else {
-                document.getElementById("fAll").className = "f-btn px-3 py-1 rounded-lg text-xs gold-btn";
+        async function submitLoyaltyPoint(phone) {
+            try {
+                const res = await apiFetch("/api/admin/loyalty/add-point", {
+                    method: "POST",
+                    body: JSON.stringify({ client_phone: phone })
+                });
+                const data = await res.json();
+                alert(data.message);
+                loadDashboardData();
+            } catch (err) {
+                alert("فشل إضافة النقطة!");
             }
+        }
 
-            renderBookings(filtered);
+        function filterBookings(type) {
+            renderBookings(rawBookings);
         }
 
         function renderBookings(list) {
             const container = document.getElementById("bookingsList");
             container.innerHTML = "";
-
-            if (list.length === 0) {
-                container.innerHTML = "<p class='text-xs text-gray-500 text-center py-8'>لا توجد حجوزات في هذه الفئة.</p>";
-                return;
-            }
-
             list.forEach(item => {
                 const card = document.createElement("div");
-                card.className = "input-dark p-4 rounded-xl flex items-center justify-between gap-3 border border-zinc-800/80 hover:border-zinc-700 transition";
+                card.className = "input-dark p-4 rounded-xl flex items-center justify-between text-xs";
                 card.innerHTML = `
-                    <div class="space-y-1">
-                        <div class="flex items-center gap-2">
-                            <span class="font-bold text-white text-sm">${item.client_name}</span>
-                            <span class="gold-text text-xs bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">${item.booking_time} م</span>
-                        </div>
-                        <div class="text-xs text-gray-400 flex flex-wrap gap-x-3 gap-y-1">
-                            <span>📞 ${item.client_phone}</span>
-                            <span>✂️ ${item.service_name}</span>
-                            <span>📅 ${item.booking_date}</span>
-                        </div>
-                        ${item.notes ? `<p class="text-[11px] text-amber-200/70 bg-zinc-900 p-1.5 rounded-lg mt-1">📝 ${item.notes}</p>` : ''}
+                    <div>
+                        <p class="font-bold text-white text-sm">${item.client_name} - <span class="gold-text">${item.booking_time} م</span></p>
+                        <p class="text-gray-400">📞 ${item.client_phone} | ✂️ ${item.service_name} | 📅 ${item.booking_date}</p>
                     </div>
-                    <button onclick="cancelBooking(${item.id})" class="bg-red-900/40 text-red-400 hover:bg-red-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">
-                        إلغاء
-                    </button>
+                    <button onclick="cancelBooking(${item.id})" class="text-red-400 hover:text-white font-bold">إلغاء</button>
                 `;
                 container.appendChild(card);
             });
@@ -269,15 +267,8 @@
         function renderBlockedDays(list) {
             const container = document.getElementById("blockedDaysList");
             container.innerHTML = "";
-
             list.forEach(b => {
-                const badge = document.createElement("div");
-                badge.className = "bg-red-950/60 border border-red-800/50 text-red-300 px-2.5 py-1 rounded-xl text-xs flex items-center gap-2";
-                badge.innerHTML = `
-                    <span>📅 ${b.blocked_date} (${b.reason || 'عطلة'})</span>
-                    <button onclick="unblockDay(${b.id})" class="text-red-400 hover:text-white font-bold text-sm">×</button>
-                `;
-                container.appendChild(badge);
+                container.innerHTML += `<span class="bg-red-950 text-red-300 px-2.5 py-1 rounded-xl text-xs">📅 ${b.blocked_date}</span>`;
             });
         }
 
@@ -289,62 +280,23 @@
                 service_name: document.getElementById("mService").value,
                 booking_date: document.getElementById("mDate").value,
                 booking_time: document.getElementById("mTime").value,
-                notes: document.getElementById("mNotes").value
+                notes: ""
             };
-
-            try {
-                const res = await apiFetch("/api/admin/manual-booking", {
-                    method: "POST",
-                    body: JSON.stringify(payload)
-                });
-                if (res.ok) {
-                    alert("🎉 تم حفظ الحجز اليدوي بنجاح!");
-                    e.target.reset();
-                    loadDashboardData();
-                }
-            } catch (err) {
-                alert("❌ فشل إضافة الحجز!");
-            }
+            const res = await apiFetch("/api/admin/manual-booking", { method: "POST", body: JSON.stringify(payload) });
+            if (res.ok) { alert("تم الحجز اليدوي بنجاح!"); loadDashboardData(); }
         }
 
         async function handleBlockDay(e) {
             e.preventDefault();
-            const payload = {
-                blocked_date: document.getElementById("blockDate").value,
-                reason: document.getElementById("blockReason").value || "عطلة"
-            };
-
-            try {
-                const res = await apiFetch("/api/admin/block-day", {
-                    method: "POST",
-                    body: JSON.stringify(payload)
-                });
-                if (res.ok) {
-                    e.target.reset();
-                    loadDashboardData();
-                }
-            } catch (err) {
-                alert("❌ فشل إغلاق اليوم!");
-            }
+            const payload = { blocked_date: document.getElementById("blockDate").value, reason: document.getElementById("blockReason").value };
+            const res = await apiFetch("/api/admin/block-day", { method: "POST", body: JSON.stringify(payload) });
+            if (res.ok) loadDashboardData();
         }
 
         async function cancelBooking(id) {
-            if (!confirm("هل أنت تأكد من إغلاق هذا الحجز؟")) return;
-            try {
-                const res = await apiFetch(`/api/admin/bookings/${id}`, { method: "DELETE" });
-                if (res.ok) loadDashboardData();
-            } catch (err) {
-                alert("❌ حدث خطأ أثناء الإلغاء!");
-            }
-        }
-
-        async function unblockDay(id) {
-            try {
-                const res = await apiFetch(`/api/admin/unblock-day/${id}`, { method: "DELETE" });
-                if (res.ok) loadDashboardData();
-            } catch (err) {
-                alert("❌ حدث خطأ!");
-            }
+            if (!confirm("تأكيد الإلغاء؟")) return;
+            const res = await apiFetch(`/api/admin/bookings/${id}`, { method: "DELETE" });
+            if (res.ok) loadDashboardData();
         }
     </script>
 </body>
