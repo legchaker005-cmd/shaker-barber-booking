@@ -2,9 +2,9 @@ from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
+from supabase import create_client, Client
 import typing
 import os
-import json
 
 app = FastAPI(title="SHAKER BARBER API")
 
@@ -16,6 +16,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# قراءة إعدادات Supabase بأمان من متغيرات البيئة في Vercel
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://egaruwzfpdadazixfqjb.supabase.co")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
+
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
 class BookingCreate(BaseModel):
     client_name: str
     client_phone: str
@@ -25,25 +31,6 @@ class BookingCreate(BaseModel):
     notes: typing.Optional[str] = None
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_FILE = os.path.join(BASE_DIR, "bookings.json")
-
-# قراءة الحجوزات من الملف الدائم
-def load_bookings():
-    if os.path.exists(DB_FILE):
-        try:
-            with open(DB_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            return []
-    return []
-
-# حفظ الحجوزات في الملف الدائم
-def save_bookings(bookings):
-    try:
-        with open(DB_FILE, "w", encoding="utf-8") as f:
-            json.dump(bookings, f, ensure_ascii=False, indent=4)
-    except Exception as e:
-        print(f"Error saving DB: {e}")
 
 @app.get("/", response_class=HTMLResponse)
 def read_root():
@@ -65,40 +52,51 @@ def read_admin():
 
 @app.post("/api/bookings", status_code=status.HTTP_201_CREATED)
 def create_booking(booking: BookingCreate):
-    bookings = load_bookings()
-    
-    # 1. منع حجزين في نفس الوقت ونفس اليوم
-    for b in bookings:
-        if b["booking_date"] == booking.booking_date and b["booking_time"] == booking.booking_time:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"توقيت ({booking.booking_time}) محجوز بالكامل في يوم ({booking.booking_date})، اختر توقيتاً آخر."
-            )
-            
-    # 2. منع التكرار بنفس الاسم بنفس اليوم
-    for b in bookings:
-        if b["client_name"].strip().lower() == booking.client_name.strip().lower() and b["booking_date"] == booking.booking_date:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"يوجد حجز مسبق باسم ({booking.client_name}) في يوم ({booking.booking_date})!"
-            )
-            
-    new_booking = booking.dict()
-    new_booking["id"] = (max([b["id"] for b in bookings], default=0) + 1)
-    new_booking["status"] = "مؤكد"
-    
-    bookings.append(new_booking)
-    save_bookings(bookings)
-    
-    return {"success": True, "message": "تم تأكيد الحجز وحفظه بنجاح!", "data": new_booking}
+    try:
+        # جلب الحجوزات لنفس اليوم للتحقق من عدم التضارب والتكرار
+        response = supabase.table("bookings").select("*").eq("booking_date", booking.booking_date).execute()
+        existing_bookings = response.data
+
+        # 1. منع حجزين في نفس التوقيت
+        for b in existing_bookings:
+            if b["booking_time"] == booking.booking_time:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"توقيت ({booking.booking_time}) محجوز بالكامل في يوم ({booking.booking_date})، اختر توقيتاً آخر."
+                )
+
+        # 2. منع التكرار بنفس الاسم في نفس اليوم
+        for b in existing_bookings:
+            if b["client_name"].strip().lower() == booking.client_name.strip().lower():
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"يوجد حجز مسبق باسم ({booking.client_name}) في يوم ({booking.booking_date})!"
+                )
+
+        # حفظ الحجز في قاعدة بيانات Supabase بشكل دائم
+        new_booking_data = booking.dict()
+        new_booking_data["status"] = "مؤكد"
+        insert_res = supabase.table("bookings").insert(new_booking_data).execute()
+
+        return {"success": True, "message": "تم تأكيد الحجز وحفظه في قاعدة البيانات بنجاح!", "data": insert_res.data}
+
+    except HTTPException as http_e:
+        raise http_e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ في قاعدة البيانات: {str(e)}")
 
 @app.get("/api/bookings")
 def get_all_bookings():
-    return load_bookings()
+    try:
+        response = supabase.table("bookings").select("*").order("id", desc=False).execute()
+        return response.data
+    except Exception as e:
+        return []
 
 @app.delete("/api/bookings/{booking_id}")
 def delete_booking(booking_id: int):
-    bookings = load_bookings()
-    bookings = [b for b in bookings if b["id"] != booking_id]
-    save_bookings(bookings)
-    return {"success": True, "message": "تم حذف الحجز بنجاح"}
+    try:
+        supabase.table("bookings").delete().eq("id", booking_id).execute()
+        return {"success": True, "message": "تم حذف الحجز بنجاح"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="تعذر حذف الحجز")
