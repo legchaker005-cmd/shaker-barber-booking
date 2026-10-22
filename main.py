@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 import typing
+import os
 
 app = FastAPI(title="نظام حجز مواعيد الحلاقة - شاكر")
 
@@ -28,23 +29,28 @@ class StatusUpdate(BaseModel):
 # ذاكرة مؤقتة للحجوزات
 fake_db_bookings = []
 
+# الحصول على المسار الصحيح للمجلد الحالي
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # 1. صفحة الحجز للزبائن
 @app.get("/", response_class=HTMLResponse)
 def read_root():
+    file_path = os.path.join(BASE_DIR, "index.html")
     try:
-        with open("index.html", "r", encoding="utf-8") as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             return f.read()
     except FileNotFoundError:
-        return "<h1>يرجى التأكد من وجود ملف index.html</h1>"
+        return "<h1>يرجى التأكد من وجود ملف index.html في المستودع</h1>"
 
 # 2. صفحة لوحة التحكم الإدارية لشاكر
 @app.get("/admin", response_class=HTMLResponse)
 def read_admin():
+    file_path = os.path.join(BASE_DIR, "admin.html")
     try:
-        with open("admin.html", "r", encoding="utf-8") as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             return f.read()
     except FileNotFoundError:
-        return "<h1>يرجى التأكد من وجود ملف admin.html</h1>"
+        return "<h1>يرجى التأكد من وجود ملف admin.html في المستودع</h1>"
 
 # 3. إنشاء حجز جديد
 @app.post("/api/bookings", status_code=status.HTTP_201_CREATED)
