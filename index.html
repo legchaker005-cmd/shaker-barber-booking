@@ -7,108 +7,188 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Tajawal', sans-serif; background-color: #0d0d0d; color: #f3f4f6; }
-        .gold-gradient { background: linear-gradient(135deg, #e6c200 0%, #f3e5ab 50%, #b8860b 100%); }
-        .gold-text { background: linear-gradient(135deg, #f5d77f 0%, #d4af37 50%, #aa7c11 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .gold-border-glow { border: 1px solid rgba(212, 175, 55, 0.3); box-shadow: 0 0 15px rgba(212, 175, 55, 0.05); }
-        .card-bg { background-color: #121212; }
+        body { font-family: 'Tajawal', sans-serif; background-color: #0b0c10; color: #e5e7eb; }
+        .gold-btn { background: #eab308; color: #000; font-weight: 700; }
+        .gold-btn:hover { background: #ca8a04; }
+        .gold-text { color: #eab308; }
+        .card-dark { background-color: #121318; border: 1px solid #1f222e; }
+        .input-dark { background-color: #181a20; border: 1px solid #282c3a; color: #f3f4f6; }
+        .input-dark:focus { border-color: #eab308; outline: none; }
     </style>
 </head>
+<body class="min-h-screen p-4 md:p-8 flex flex-col justify-between">
 
-<body class="min-h-screen flex flex-col justify-between p-4 md:p-8">
-
-    <!-- Header -->
-    <header class="text-center my-6">
-        <h1 class="text-4xl md:text-5xl font-extrabold gold-text tracking-wider mb-2">SHAKER BARBER</h1>
-        <p class="text-gray-400 text-sm md:text-base font-medium">احجز موعدك بسهولة وسرعة بلمسة واحدة</p>
-    </header>
-
-    <!-- Main Container -->
-    <main class="max-w-md mx-auto w-full">
+    <div class="max-w-6xl mx-auto w-full space-y-6">
         
-        <div class="card-bg gold-border-glow p-6 md:p-7 rounded-2xl shadow-2xl">
-            <form id="bookingForm" onsubmit="handleBooking(event)" class="space-y-4">
+        <!-- Header -->
+        <header class="text-center py-2">
+            <h1 class="text-3xl font-extrabold gold-text tracking-wide">SHAKER BARBER</h1>
+            <p class="text-xs text-gray-400">نظام حجز المواعيد الفوري والاحترافي</p>
+        </header>
+
+        <!-- Main Layout Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left Column: Summary Card -->
+            <div class="lg:col-span-4 order-2 lg:order-1">
+                <div class="card-dark p-6 rounded-2xl space-y-6 sticky top-6 shadow-xl">
+                    <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+                        <h2 class="text-lg font-bold flex items-center gap-2">
+                            <span>💰</span> ملخص الحجز
+                        </h2>
+                    </div>
+
+                    <div class="space-y-4 text-sm">
+                        <div class="flex justify-between items-center text-gray-400">
+                            <span>الخدمة:</span>
+                            <span id="summaryService" class="font-bold text-white">تدرج احترافي</span>
+                        </div>
+                        <div class="flex justify-between items-center text-gray-400">
+                            <span>التاريخ والوقت:</span>
+                            <span id="summaryDateTime" class="font-bold gold-text">اليوم | 06:00 م</span>
+                        </div>
+                        <div class="border-t border-zinc-800 pt-4 flex justify-between items-center">
+                            <span class="text-base font-bold">الإجمالي:</span>
+                            <span id="summaryPrice" class="text-xl font-extrabold gold-text">350 ل.ت</span>
+                        </div>
+                    </div>
+
+                    <button onclick="submitBookingForm()" id="confirmBtn"
+                        class="w-full gold-btn py-3.5 rounded-xl shadow-lg hover:brightness-110 transition flex items-center justify-center gap-2 text-base">
+                        <span>✔️</span> تأكيد الموعد فوراً
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Column: Booking Controls & Form -->
+            <div class="lg:col-span-8 order-1 lg:order-2 space-y-6">
                 
-                <!-- Client Name -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-300 mb-1.5">الاسم الكامل</label>
-                    <input type="text" id="clientName" required placeholder="أدخل اسمك الكريم"
-                        class="w-full bg-[#1a1a1a] border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition text-gray-200">
-                </div>
+                <!-- Section 1: Date & Time Picker -->
+                <div class="card-dark p-6 rounded-2xl space-y-5">
+                    <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-full gold-btn text-xs flex items-center justify-center font-bold">2</span>
+                        <h2 class="text-base font-bold text-white">حدد التاريخ والوقت (من 6 مساءً إلى 11 ليلاً)</h2>
+                    </div>
 
-                <!-- Client Phone -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-300 mb-1.5">رقم الهاتف</label>
-                    <input type="tel" id="clientPhone" required placeholder="05XXXXXXXX"
-                        class="w-full bg-[#1a1a1a] border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition text-gray-200 text-right" dir="ltr">
-                </div>
+                    <!-- Day Quick Select -->
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-2">اختر اليوم:</label>
+                        <div class="flex gap-2">
+                            <button type="button" onclick="selectDayQuick('today')" id="btnToday" class="day-btn px-5 py-2 rounded-xl text-xs font-bold gold-btn">اليوم</button>
+                            <button type="button" onclick="selectDayQuick('tomorrow')" id="btnTomorrow" class="day-btn px-5 py-2 rounded-xl text-xs font-bold input-dark text-gray-400">غداً</button>
+                            <button type="button" onclick="selectDayQuick('after')" id="btnAfter" class="day-btn px-5 py-2 rounded-xl text-xs font-bold input-dark text-gray-400">بعد غد</button>
+                            <input type="date" id="bookingDate" onchange="fetchAvailability()" class="input-dark px-3 py-1.5 rounded-xl text-xs hidden">
+                        </div>
+                    </div>
 
-                <!-- Service Selection -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-300 mb-1.5">اختر الخدمة</label>
-                    <select id="serviceName" required
-                        class="w-full bg-[#1a1a1a] border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition text-gray-200">
-                        <option value="حلاقة شعر احترافية">حلاقة شعر احترافية - 200 TL</option>
-                        <option value="حلاقة شعر + ذقن">حلاقة شعر + ذقن - 300 TL</option>
-                        <option value="حلاقة كاملة + تنظيف بشرة">حلاقة كاملة + تنظيف بشرة - 400 TL</option>
-                    </select>
-                </div>
-
-                <!-- Date Picker -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-300 mb-1.5">تاريخ الحجز</label>
-                    <input type="date" id="bookingDate" required onchange="fetchAvailability()"
-                        class="w-full bg-[#1a1a1a] border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition text-gray-200">
-                </div>
-
-                <!-- Time Slot Grid -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-300 mb-1.5">المواعيد المتاحة (من 18:00 إلى 23:00)</label>
-                    <div id="timeSlotsGrid" class="grid grid-cols-3 gap-2 pt-1">
-                        <!-- Loaded dynamically -->
+                    <!-- Available Time Slots Grid -->
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-2">اختر التوقيت المتاح:</label>
+                        <div id="timeSlotsGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                            <!-- Slot buttons injected via JS -->
+                        </div>
                     </div>
                 </div>
 
-                <!-- Notes -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-300 mb-1.5">ملاحظات إضافية (اختياري)</label>
-                    <input type="text" id="notes" placeholder="أي تفاصيل خاصة بالحجز..."
-                        class="w-full bg-[#1a1a1a] border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition text-gray-200">
+                <!-- Section 2: Service & Client Details -->
+                <div class="card-dark p-6 rounded-2xl space-y-5">
+                    <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-full gold-btn text-xs flex items-center justify-center font-bold">3</span>
+                        <h2 class="text-base font-bold text-white">معلومات الحجز والتواصل</h2>
+                    </div>
+
+                    <form id="bookingForm" onsubmit="handleBooking(event)" class="space-y-4">
+                        
+                        <!-- Service Selection -->
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1.5">اختر الخدمة المطلوبة *</label>
+                            <select id="serviceName" required onchange="updateSummary()" class="w-full input-dark rounded-xl px-4 py-3 text-sm">
+                                <option value="تدرج احترافي" data-price="350">تدرج احترافي - 350 ل.ت</option>
+                                <option value="حلاقة شعر + ذقن" data-price="450">حلاقة شعر + ذقن - 450 ل.ت</option>
+                                <option value="حلاقة كاملة + سشوار" data-price="500">حلاقة كاملة + سشوار - 500 ل.ت</option>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-1.5">الاسم الكامل *</label>
+                                <input type="text" id="clientName" required placeholder="أدخل اسمك الكريم" class="w-full input-dark rounded-xl px-4 py-3 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-1.5">رقم الهاتف (05XXXXXXXX) *</label>
+                                <input type="tel" id="clientPhone" required placeholder="05XXXXXXXX" dir="ltr" class="w-full input-dark rounded-xl px-4 py-3 text-sm text-right">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1.5">ملاحظات أو تفاصيل القصة (اختياري)...</label>
+                            <textarea id="notes" rows="2" placeholder="أي تفاصيل إضافية تحب أن تعرفني بها..." class="w-full input-dark rounded-xl px-4 py-2.5 text-sm"></textarea>
+                        </div>
+                    </form>
                 </div>
 
-                <!-- Submit Button -->
-                <button type="submit" id="submitBtn"
-                    class="w-full gold-gradient text-black font-extrabold py-3.5 rounded-xl shadow-lg hover:brightness-110 transition active:scale-98 text-base mt-2">
-                    تأكيد الموعد فوراً ✂️
-                </button>
-            </form>
+            </div>
         </div>
 
-    </main>
+        <!-- Live Schedule Status Grid (Bottom Status Bar) -->
+        <div class="card-dark p-5 rounded-2xl space-y-3">
+            <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-gray-400">حالة المواعيد المباشرة:</span>
+                <button onclick="fetchAvailability()" class="input-dark px-3 py-1.5 rounded-lg text-xs hover:border-amber-500 flex items-center gap-1">
+                    <span>🔄</span> تحديث المواعيد
+                </button>
+            </div>
+            <div id="statusGrid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+                <!-- Status badges injected dynamically -->
+            </div>
+        </div>
 
-    <footer class="text-center text-xs text-zinc-600 my-6">
-        &copy; 2026 SHAKER BARBER - جميع الحقوق محفوظة
-    </footer>
+    </div>
 
     <script>
         const allSlots = ["18:00", "18:45", "19:30", "20:15", "21:00", "21:45", "22:30"];
-        let selectedTime = null;
+        let selectedTime = "18:00";
+        let selectedDayLabel = "اليوم";
 
         document.addEventListener("DOMContentLoaded", () => {
-            const today = new Date().toISOString().split('T')[0];
-            const dateInput = document.getElementById("bookingDate");
-            dateInput.value = today;
-            dateInput.min = today;
-            fetchAvailability();
+            selectDayQuick('today');
+            updateSummary();
         });
+
+        function selectDayQuick(type) {
+            const dateInput = document.getElementById("bookingDate");
+            const now = new Date();
+
+            if (type === 'today') {
+                selectedDayLabel = "اليوم";
+            } else if (type === 'tomorrow') {
+                now.setDate(now.getDate() + 1);
+                selectedDayLabel = "غداً";
+            } else if (type === 'after') {
+                now.setDate(now.getDate() + 2);
+                selectedDayLabel = "بعد غد";
+            }
+
+            dateInput.value = now.toISOString().split('T')[0];
+
+            document.querySelectorAll(".day-btn").forEach(b => {
+                b.className = "day-btn px-5 py-2 rounded-xl text-xs font-bold input-dark text-gray-400";
+            });
+
+            if(type === 'today') document.getElementById("btnToday").className = "day-btn px-5 py-2 rounded-xl text-xs font-bold gold-btn";
+            if(type === 'tomorrow') document.getElementById("btnTomorrow").className = "day-btn px-5 py-2 rounded-xl text-xs font-bold gold-btn";
+            if(type === 'after') document.getElementById("btnAfter").className = "day-btn px-5 py-2 rounded-xl text-xs font-bold gold-btn";
+
+            fetchAvailability();
+        }
 
         async function fetchAvailability() {
             const date = document.getElementById("bookingDate").value;
             const grid = document.getElementById("timeSlotsGrid");
-            grid.innerHTML = "<p class='col-span-3 text-center text-zinc-500 text-xs py-2'>جاري جلب المواعيد...</p>";
-            selectedTime = null;
+            const statusGrid = document.getElementById("statusGrid");
 
-            if (!date) return;
+            grid.innerHTML = "<p class='col-span-4 text-xs text-gray-500 py-2'>جاري جلب المواعيد...</p>";
+            statusGrid.innerHTML = "";
 
             try {
                 const res = await fetch(`/api/availability/${date}`);
@@ -117,52 +197,72 @@
                 grid.innerHTML = "";
 
                 if (data.is_blocked) {
-                    grid.innerHTML = `<div class='col-span-3 bg-red-950/40 border border-red-800/60 text-red-400 p-2.5 rounded-xl text-center text-xs font-bold'>
-                        ⚠️ هذا اليوم مغلق للحجوزات (${data.blocked_reason || 'عطلة'})
-                    </div>`;
+                    grid.innerHTML = `<div class='col-span-4 bg-red-900/20 border border-red-500/40 text-red-400 p-3 rounded-xl text-xs font-bold text-center'>⚠️ اليوم مغلق (${data.blocked_reason || 'عطلة'})</div>`;
                     return;
                 }
 
                 allSlots.forEach(slot => {
                     const isBooked = data.booked_times.includes(slot);
+
+                    // Top Interactive Button
                     const btn = document.createElement("button");
                     btn.type = "button";
                     btn.disabled = isBooked;
 
                     if (isBooked) {
-                        btn.className = "bg-[#161616] text-zinc-600 border border-zinc-800/50 py-2.5 rounded-xl text-xs cursor-not-allowed line-through";
+                        btn.className = "bg-zinc-900/60 text-red-400 border border-red-900/40 py-2.5 rounded-xl text-xs font-bold cursor-not-allowed";
                         btn.innerText = `${slot} (محجوز)`;
                     } else {
-                        btn.className = "slot-btn bg-[#1a1a1a] border border-zinc-800 hover:border-amber-500/50 text-gray-200 py-2.5 rounded-xl text-xs transition font-bold";
-                        btn.innerText = slot;
+                        btn.className = `slot-btn input-dark py-2.5 rounded-xl text-xs font-bold transition ${selectedTime === slot ? 'gold-btn' : ''}`;
+                        btn.innerText = `${slot} م`;
                         btn.onclick = () => selectSlot(btn, slot);
                     }
                     grid.appendChild(btn);
+
+                    // Bottom Status Badge
+                    const badge = document.createElement("div");
+                    badge.className = "input-dark p-2 rounded-xl flex items-center justify-between text-xs";
+                    badge.innerHTML = `
+                        <span class="font-bold">${slot} م</span>
+                        <span class="${isBooked ? 'bg-red-900/50 text-red-400' : 'bg-emerald-900/50 text-emerald-400'} px-2 py-0.5 rounded-md text-[10px] font-bold">
+                            ${isBooked ? '🔴 محجوز' : '🟢 متاح'}
+                        </span>
+                    `;
+                    statusGrid.appendChild(badge);
                 });
 
+                updateSummary();
+
             } catch (err) {
-                grid.innerHTML = "<p class='col-span-3 text-center text-red-400 text-xs'>حدث خطأ أثناء الاتصال</p>";
+                grid.innerHTML = "<p class='col-span-4 text-xs text-red-400'>خطأ في تحميل المواعيد</p>";
             }
         }
 
-        function selectSlot(btnElement, slotTime) {
+        function selectSlot(btn, slot) {
             document.querySelectorAll(".slot-btn").forEach(b => {
-                b.classList.remove("gold-gradient", "text-black", "border-amber-500", "shadow-md");
-                b.classList.add("bg-[#1a1a1a]", "text-gray-200", "border-zinc-800");
+                b.className = "slot-btn input-dark py-2.5 rounded-xl text-xs font-bold transition";
             });
+            btn.className = "slot-btn gold-btn py-2.5 rounded-xl text-xs font-bold transition";
+            selectedTime = slot;
+            updateSummary();
+        }
 
-            btnElement.classList.remove("bg-[#1a1a1a]", "text-gray-200", "border-zinc-800");
-            btnElement.classList.add("gold-gradient", "text-black", "border-amber-500", "shadow-md");
-            selectedTime = slotTime;
+        function updateSummary() {
+            const select = document.getElementById("serviceName");
+            const selectedOpt = select.options[select.selectedIndex];
+            const price = selectedOpt.getAttribute("data-price") || "350";
+
+            document.getElementById("summaryService").innerText = select.value;
+            document.getElementById("summaryPrice").innerText = `${price} ل.ت`;
+            document.getElementById("summaryDateTime").innerText = `${selectedDayLabel} | ${selectedTime} م`;
+        }
+
+        function submitBookingForm() {
+            document.getElementById("bookingForm").requestSubmit();
         }
 
         async function handleBooking(e) {
             e.preventDefault();
-
-            if (!selectedTime) {
-                alert("يرجى اختيار وقت الموعد من الجدول أولاً!");
-                return;
-            }
 
             const payload = {
                 client_name: document.getElementById("clientName").value,
@@ -173,9 +273,9 @@
                 notes: document.getElementById("notes").value
             };
 
-            const submitBtn = document.getElementById("submitBtn");
-            submitBtn.disabled = true;
-            submitBtn.innerText = "جاري الحفظ...";
+            const confirmBtn = document.getElementById("confirmBtn");
+            confirmBtn.disabled = true;
+            confirmBtn.innerText = "جاري التأكيد...";
 
             try {
                 const res = await fetch("/api/bookings", {
@@ -189,17 +289,3 @@
                 if (res.ok) {
                     alert("🎉 " + result.message);
                     document.getElementById("bookingForm").reset();
-                    fetchAvailability();
-                } else {
-                    alert("❌ " + (result.detail || "تعذر الحجز!"));
-                }
-            } catch (err) {
-                alert("❌ حدث خطأ في الاتصال بالسيرفر!");
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerText = "تأكيد الموعد فوراً ✂️";
-            }
-        }
-    </script>
-</body>
-</html>
