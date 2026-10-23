@@ -38,14 +38,10 @@ class UpdateLoyaltyRequest(BaseModel):
     points: int
     total_rewards: Optional[int] = 0
 
-# Admin PIN Verification (4628)
-# Helper function to check admin PIN
+# Admin PIN Verification (4628) - مع تنظيف النشر والمسافات
 def verify_admin_pin(x_admin_pin: str = Header(None)):
-    # تنظيف النص من أي مسافات زائدة
-    clean_pin = str(x_admin_pin).strip() if x_admin_pin else ""
-    
-    # قبول الرمز 4628
-    if clean_pin != "4628":
+    pin = str(x_admin_pin).strip() if x_admin_pin else ""
+    if pin != "4628":
         raise HTTPException(status_code=401, detail="رمز PIN غير صحيح!")
     return True
 
@@ -171,7 +167,6 @@ def unblock_day(blocked_id: int, authorized: bool = Depends(verify_admin_pin)):
     supabase.table("blocked_days").delete().eq("id", blocked_id).execute()
     return {"message": "تم إعادة فتح اليوم بنجاح."}
 
-# Block/Unblock Specific Hour Slot
 @app.post("/api/admin/toggle-slot-block")
 def toggle_slot_block(data: BlockSlotRequest, authorized: bool = Depends(verify_admin_pin)):
     existing = supabase.table("blocked_slots").select("*")\
@@ -179,13 +174,11 @@ def toggle_slot_block(data: BlockSlotRequest, authorized: bool = Depends(verify_
         .eq("blocked_time", data.blocked_time).execute()
     
     if existing.data:
-        # Delete block
         supabase.table("blocked_slots").delete()\
             .eq("blocked_date", data.blocked_date)\
             .eq("blocked_time", data.blocked_time).execute()
         return {"message": f"تم فتح الساعة {data.blocked_time} بنجاح!", "blocked": False}
     else:
-        # Insert block
         supabase.table("blocked_slots").insert(data.dict()).execute()
         return {"message": f"تم إغلاق الساعة {data.blocked_time} بنجاح!", "blocked": True}
 
@@ -226,7 +219,7 @@ def add_loyalty_point(data: AddPointRequest, authorized: bool = Depends(verify_a
     msg = "🎉 مبروك! الزبون أتم 5 نقاط وحصل على حلاقة مجانية!" if reward_unlocked else f"تم إضافة نقطة بنجاح! النقاط: {new_points}/5"
     return {"message": msg, "points": new_points, "reward": reward_unlocked}
 
-# Routes
+# Serve HTML Files
 @app.get("/loyalty")
 def serve_loyalty_page():
     return FileResponse("loyalty.html")
