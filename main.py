@@ -39,8 +39,13 @@ class UpdateLoyaltyRequest(BaseModel):
     total_rewards: Optional[int] = 0
 
 # Admin PIN Verification (4628)
+# Helper function to check admin PIN
 def verify_admin_pin(x_admin_pin: str = Header(None)):
-    if x_admin_pin != "4628":
+    # تنظيف النص من أي مسافات زائدة
+    clean_pin = str(x_admin_pin).strip() if x_admin_pin else ""
+    
+    # قبول الرمز 4628
+    if clean_pin != "4628":
         raise HTTPException(status_code=401, detail="رمز PIN غير صحيح!")
     return True
 
