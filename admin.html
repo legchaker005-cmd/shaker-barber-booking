@@ -158,7 +158,7 @@
                         <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-xl text-xs whitespace-nowrap">إغلاق</button>
                     </form>
                     <div id="blockedDaysList" class="flex flex-wrap gap-2 pt-2">
-                        <!-- Blocked days with open buttons injected via JS -->
+                        <!-- Blocked days injected via JS -->
                     </div>
                 </div>
             </div>
@@ -199,19 +199,19 @@
         function loginAdmin() {
             const input = document.getElementById("pinInput").value;
             if (!input) return alert("يرجى إدخال رمز PIN");
-            adminPIN = input;
+            adminPIN = input.trim();
             loadDashboardData();
         }
 
         async function apiFetch(url, options = {}) {
             options.headers = {
                 ...options.headers,
-                "x-admin-pin": adminPIN,
+                "x-admin-pin": adminPIN.trim(),
                 "Content-Type": "application/json"
             };
             const res = await fetch(url, options);
             if (res.status === 401) {
-                alert("رمز PIN غير صحيح! (تأكد أن الرمز هو 4628)");
+                alert("رمز PIN غير صحيح! تأكد أنك تدخل الرقم 4628");
                 document.getElementById("authModal").classList.remove("hidden");
                 document.getElementById("dashboardContent").classList.add("hidden");
                 throw new Error("Unauthorized");
@@ -367,4 +367,144 @@
         }
 
         function renderLoyaltyCards(list) {
-            const container = document.getElementById("
+            const container = document.getElementById("loyaltyList");
+            container.innerHTML = "";
+            document.getElementById("loyaltyCount").innerText = `${list.length} زبون`;
+
+            if (list.length === 0) {
+                container.innerHTML = "<p class='text-xs text-gray-500 text-center py-4'>لا توجد بطاقات ولاء مسجلة بعد.</p>";
+                return;
+            }
+
+            list.forEach(card => {
+                const item = document.createElement("div");
+                item.className = "input-dark p-3.5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs";
+                item.innerHTML = `
+                    <div class="space-y-1">
+                        <p class="font-bold text-white text-sm">${card.client_name || 'بدون اسم'} <span class="text-gray-400 font-normal">(${card.client_phone})</span></p>
+                        <div class="flex items-center gap-3 text-gray-300">
+                            <span>⭐ النقاط: <strong class="gold-text text-sm">${card.points}/5</strong></span>
+                            <span>🎁 المكافآت: <strong class="text-emerald-400">${card.total_rewards || 0}</strong></span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="editPoints(${card.id}, ${card.points}, ${card.total_rewards})" class="bg-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-black px-3 py-1.5 rounded-lg font-bold transition">تعديل</button>
+                        <button onclick="deleteCard(${card.id})" class="bg-red-900/40 text-red-400 hover:bg-red-600 hover:text-white px-3 py-1.5 rounded-lg font-bold transition">حذف</button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function renderBlockedDays(list) {
+            const container = document.getElementById("blockedDaysList");
+            container.innerHTML = "";
+            
+            if (!list || list.length === 0) {
+                container.innerHTML = "<p class='text-xs text-gray-500'>لا توجد أيام مغلقة حالياً.</p>";
+                return;
+            }
+
+            list.forEach(b => {
+                const badge = document.createElement("div");
+                badge.className = "bg-red-950/80 border border-red-800/60 text-red-300 px-3 py-1.5 rounded-xl text-xs flex items-center gap-2";
+                badge.innerHTML = `
+                    <span>📅 <strong>${b.blocked_date}</strong> ${b.reason ? '(' + b.reason + ')' : ''}</span>
+                    <button onclick="unblockDay(${b.id})" class="text-xs bg-red-800/50 hover:bg-red-600 text-white font-bold px-1.5 py-0.5 rounded-md transition" title="إعادة فتح اليوم">🔓 فتح</button>
+                `;
+                container.appendChild(badge);
+            });
+        }
+
+        async function handleManualBooking(e) {
+            e.preventDefault();
+            const payload = {
+                client_name: document.getElementById("mClientName").value,
+                client_phone: document.getElementById("mClientPhone").value,
+                service_name: document.getElementById("mService").value,
+                booking_date: document.getElementById("mDate").value,
+                booking_time: document.getElementById("mTime").value,
+                notes: ""
+            };
+            const res = await apiFetch("/api/admin/manual-booking", { method: "POST", body: JSON.stringify(payload) });
+            if (res.ok) { alert("تم الحجز بنجاح!"); loadDashboardData(); }
+        }
+
+        async function handleBlockDay(e) {
+            e.preventDefault();
+            const dateInput = document.getElementById("blockDate");
+            const reasonInput = document.getElementById("blockReason");
+
+            if (!dateInput.value) return alert("يرجى اختيار التاريخ!");
+
+            const payload = { 
+                blocked_date: dateInput.value, 
+                reason: reasonInput.value || "عطلة" 
+            };
+
+            try {
+                const res = await apiFetch("/api/admin/block-day", { 
+                    method: "POST", 
+                    body: JSON.stringify(payload) 
+                });
+                
+                if (res.ok) {
+                    alert("✅ تم إغلاق اليوم بنجاح!");
+                    dateInput.value = "";
+                    reasonInput.value = "";
+                    loadDashboardData();
+                }
+            } catch (err) {
+                alert("❌ فشل إغلاق اليوم!");
+            }
+        }
+
+        async function unblockDay(blockedId) {
+            if (!confirm("هل أنت متأكد من إعادة فتح هذا اليوم للزبائن؟")) return;
+            try {
+                const res = await apiFetch(`/api/admin/unblock-day/${blockedId}`, { 
+                    method: "DELETE" 
+                });
+                if (res.ok) {
+                    alert("🔓 تم إعادة فتح اليوم بنجاح!");
+                    loadDashboardData();
+                }
+            } catch (err) {
+                alert("❌ فشل إعادة فتح اليوم!");
+            }
+        }
+
+        async function cancelBooking(id) {
+            if (!confirm("تأكيد الإلغاء؟")) return;
+            const res = await apiFetch(`/api/admin/bookings/${id}`, { method: "DELETE" });
+            if (res.ok) loadDashboardData();
+        }
+
+        async function editPoints(cardId, currentPoints, currentRewards) {
+            const newPoints = prompt("أدخل عدد النقاط الجديدة (من 0 إلى 5):", currentPoints);
+            if (newPoints === null) return;
+            const pointsVal = parseInt(newPoints);
+            if (isNaN(pointsVal) || pointsVal < 0 || pointsVal > 5) return alert("رقم غير صحيح!");
+
+            const res = await apiFetch(`/api/admin/loyalty/cards/${cardId}`, {
+                method: "PUT",
+                body: JSON.stringify({ points: pointsVal, total_rewards: currentRewards })
+            });
+            if (res.ok) loadDashboardData();
+        }
+
+        async function deleteCard(cardId) {
+            if (!confirm("تأكيد الحذف؟")) return;
+            const res = await apiFetch(`/api/admin/loyalty/cards/${cardId}`, { method: "DELETE" });
+            if (res.ok) loadDashboardData();
+        }
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            const root = document.getElementById("htmlRoot");
+            root.setAttribute("dir", lang === 'ar' ? 'rtl' : 'ltr');
+            root.setAttribute("lang", lang);
+        }
+    </script>
+</body>
+</html>
