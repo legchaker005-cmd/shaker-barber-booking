@@ -63,7 +63,7 @@
                         </div>
                         <div class="flex justify-between items-center text-gray-400">
                             <span id="t_timeLabel">التاريخ والوقت:</span>
-                            <span id="summaryDateTime" class="font-bold gold-text">اليوم | 18:00 م</span>
+                            <span id="summaryDateTime" class="font-bold gold-text">اليوم | --:--</span>
                         </div>
                         <div class="border-t border-zinc-800 pt-4 flex justify-between items-center">
                             <span id="t_totalLabel" class="text-base font-bold">الإجمالي:</span>
@@ -182,10 +182,12 @@
     </div>
 
     <script>
-        const MY_WHATSAPP_NUMBER = "905XXXXXXXXX"; // ضع رقم هاتفك هنا
+        const MY_WHATSAPP_NUMBER = "905012359597"; // ضع رقم هاتفك هنا
 
-        const allSlots = ["18:00", "18:55", "19:50", "20:45", "21:40", "22:35"];
-        let selectedTime = "18:00";
+        const regularSlots = ["18:00", "18:55", "19:50", "20:45", "21:40", "22:35"];
+        const weekendSlots = ["11:00", "11:55", "12:50", "13:45", "14:40", "17:00", "17:55", "18:50", "19:45", "20:40", "21:35", "22:30"];
+
+        let selectedTime = "";
         let currentLang = 'ar';
         let selectedDayKey = 'today';
 
@@ -225,6 +227,7 @@
                 closeModal: "إغلاق النافذة",
                 booked: "محجوز",
                 passed: "فائت",
+                blocked: "مغلق",
                 available: "متاح",
                 blockedDay: (reason) => `⚠️ اليوم مغلق (${reason})`,
                 dayLabels: { today: "اليوم", tomorrow: "غداً", after: "بعد غد" }
@@ -258,6 +261,7 @@
                 closeModal: "Pencereyi Kapat",
                 booked: "Dolu",
                 passed: "Geçti",
+                blocked: "Kapalı",
                 available: "Müsait",
                 blockedDay: (reason) => `⚠️ Bugün kapalı (${reason})`,
                 dayLabels: { today: "Bugün", tomorrow: "Yarın", after: "Yarından Sonra" }
@@ -291,6 +295,7 @@
                 closeModal: "Close Window",
                 booked: "Booked",
                 passed: "Passed",
+                blocked: "Closed",
                 available: "Available",
                 blockedDay: (reason) => `⚠️ Day Closed (${reason})`,
                 dayLabels: { today: "Today", tomorrow: "Tomorrow", after: "Day After" }
@@ -395,15 +400,19 @@
 
         async function fetchAvailability() {
             const t = siteTranslations[currentLang];
-            const date = document.getElementById("bookingDate").value;
+            const dateVal = document.getElementById("bookingDate").value;
             const grid = document.getElementById("timeSlotsGrid");
             const statusGrid = document.getElementById("statusGrid");
 
             grid.innerHTML = "<p class='col-span-3 text-xs text-gray-500 py-2'>...</p>";
             statusGrid.innerHTML = "";
 
+            const d = new Date(dateVal);
+            const isWeekend = (d.getDay() === 0 || d.getDay() === 6);
+            const activeSlots = isWeekend ? weekendSlots : regularSlots;
+
             try {
-                const res = await fetch(`/api/availability/${date}`);
+                const res = await fetch(`/api/availability/${dateVal}`);
                 const data = await res.json();
                 grid.innerHTML = "";
 
@@ -414,11 +423,16 @@
 
                 let firstAvailableSlot = null;
 
-                allSlots.forEach((slot, index) => {
+                activeSlots.forEach((slot) => {
                     const isBooked = data.booked_times.includes(slot);
-                    const isTooSoonOrPassed = isSlotPassedOrTooSoon(slot, date);
+                    const isSlotBlocked = data.blocked_slots ? data.blocked_slots.includes(slot) : false;
+                    const isTooSoonOrPassed = isSlotPassedOrTooSoon(slot, dateVal);
 
-                    const isDisabled = isBooked || isTooSoonOrPassed;
+                    const isDisabled = isBooked || isSlotBlocked || isTooSoonOrPassed;
+
+                    if (!isDisabled && !firstAvailableSlot) {
+                        firstAvailableSlot = slot;
+                    }
 
                     const btn = document.createElement("button");
                     btn.type = "button";
@@ -427,13 +441,14 @@
                     if (isBooked) {
                         btn.className = "bg-zinc-900/60 text-red-400 border border-red-900/40 py-2.5 rounded-xl text-xs font-bold cursor-not-allowed";
                         btn.innerText = `${slot} (${t.booked})`;
+                    } else if (isSlotBlocked) {
+                        btn.className = "bg-zinc-900/60 text-amber-500/80 border border-amber-900/40 py-2.5 rounded-xl text-xs font-bold cursor-not-allowed";
+                        btn.innerText = `${slot} (${t.blocked})`;
                     } else if (isTooSoonOrPassed) {
                         btn.className = "bg-zinc-900/40 text-gray-500 border border-zinc-800 py-2.5 rounded-xl text-xs font-bold cursor-not-allowed";
                         btn.innerText = `${slot} (${t.passed})`;
                     } else {
-                        if (!firstAvailableSlot) firstAvailableSlot = slot;
-                        const isSelected = selectedTime === slot;
-                        btn.className = `slot-btn input-dark py-2.5 rounded-xl text-xs font-bold transition ${isSelected ? 'gold-btn' : ''}`;
+                        btn.className = `slot-btn input-dark py-2.5 rounded-xl text-xs font-bold transition ${selectedTime === slot ? 'gold-btn' : ''}`;
                         btn.innerText = `${slot}`;
                         btn.onclick = () => selectSlot(btn, slot);
                     }
@@ -444,14 +459,14 @@
                     badge.innerHTML = `
                         <span class="font-bold">${slot}</span>
                         <span class="${isDisabled ? 'bg-red-900/50 text-red-400' : 'bg-emerald-900/50 text-emerald-400'} px-2 py-0.5 rounded-md text-[10px] font-bold">
-                            ${isBooked ? '🔴 ' + t.booked : (isTooSoonOrPassed ? '⏰ ' + t.passed : '🟢 ' + t.available)}
+                            ${isBooked ? '🔴 ' + t.booked : (isSlotBlocked ? '🚫 ' + t.blocked : (isTooSoonOrPassed ? '⏰ ' + t.passed : '🟢 ' + t.available))}
                         </span>
                     `;
                     statusGrid.appendChild(badge);
                 });
 
-                if (isSlotPassedOrTooSoon(selectedTime, date) || data.booked_times.includes(selectedTime)) {
-                    if (firstAvailableSlot) selectedTime = firstAvailableSlot;
+                if (!activeSlots.includes(selectedTime) || isSlotPassedOrTooSoon(selectedTime, dateVal) || data.booked_times.includes(selectedTime) || (data.blocked_slots && data.blocked_slots.includes(selectedTime))) {
+                    selectedTime = firstAvailableSlot || activeSlots[0];
                 }
 
                 updateSummary();
@@ -482,7 +497,7 @@
 
             document.getElementById("summaryService").innerText = serviceDisplay;
             document.getElementById("summaryPrice").innerText = `${price} TL`;
-            document.getElementById("summaryDateTime").innerText = `${t.dayLabels[selectedDayKey]} | ${selectedTime}`;
+            document.getElementById("summaryDateTime").innerText = `${t.dayLabels[selectedDayKey]} | ${selectedTime || '--:--'}`;
         }
 
         function submitBookingForm() {
