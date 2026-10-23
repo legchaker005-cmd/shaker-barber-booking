@@ -35,7 +35,7 @@
         <header class="flex flex-col sm:flex-row justify-between items-center bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800 gap-4">
             <div>
                 <h1 class="text-2xl font-extrabold gold-text">SHAKER BARBER ✂️</h1>
-                <p id="t_headerSub" class="text-xs text-gray-400">لوحة التحكم وإدارة الصالون</p>
+                <p id="t_headerSub" class="text-xs text-gray-400">لوحة التحكم وإدارة صالون شاكر للحلاقة</p>
             </div>
             <div class="flex items-center gap-3">
                 <select id="langSelect" onchange="changeLanguage(this.value)" class="input-dark px-3 py-1.5 rounded-xl text-xs font-bold">
@@ -47,7 +47,7 @@
             </div>
         </header>
 
-        <!-- Hour Slot Control Panel (NEW FEATURE) -->
+        <!-- Hour Slot Control Panel -->
         <div class="card-dark p-6 rounded-2xl space-y-4 border border-amber-500/30">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <h2 class="text-base font-bold gold-text flex items-center gap-2">
@@ -64,32 +64,52 @@
             </div>
         </div>
 
+        <!-- QR Scanner Section -->
+        <div class="card-dark p-6 rounded-2xl space-y-4 border border-amber-500/30">
+            <h2 class="text-base font-bold gold-text flex items-center gap-2">
+                <span>📷</span> مسح رمز QR كارت الولاء للزبون
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                <div>
+                    <div id="reader" class="rounded-2xl overflow-hidden border border-zinc-700 bg-black max-w-xs mx-auto"></div>
+                    <button onclick="startScanner()" class="w-full gold-btn py-2.5 rounded-xl text-xs mt-3">تشغيل الكاميرا للمسح</button>
+                </div>
+                <div class="space-y-3">
+                    <p class="text-xs text-gray-400">أو أضف نقطة يدوياً برقم هاتف الزبون:</p>
+                    <div class="flex gap-2">
+                        <input type="tel" id="loyaltyPhoneInput" placeholder="05XXXXXXXX" dir="ltr" class="input-dark rounded-xl px-3 py-2 text-xs w-full text-right">
+                        <button onclick="addPointManual()" class="gold-btn px-4 py-2 rounded-xl text-xs whitespace-nowrap">+1 نقطة</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Stats Cards Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div class="card-dark p-5 rounded-2xl flex items-center justify-between">
                 <div>
-                    <p id="t_stat1" class="text-xs text-gray-400 mb-1">إجمالي الحجوزات</p>
+                    <p class="text-xs text-gray-400 mb-1">إجمالي الحجوزات</p>
                     <h3 id="statBookings" class="text-2xl font-black text-white">0</h3>
                 </div>
                 <span class="text-3xl">📅</span>
             </div>
             <div class="card-dark p-5 rounded-2xl flex items-center justify-between">
                 <div>
-                    <p id="t_stat2" class="text-xs text-gray-400 mb-1">الإيرادات المتوقعة</p>
+                    <p class="text-xs text-gray-400 mb-1">الإيرادات المتوقعة</p>
                     <h3 id="statRevenue" class="text-2xl font-black gold-text">0 TL</h3>
                 </div>
                 <span class="text-3xl">💰</span>
             </div>
             <div class="card-dark p-5 rounded-2xl flex items-center justify-between">
                 <div>
-                    <p id="t_stat3" class="text-xs text-gray-400 mb-1">زبائن كروت الولاء</p>
+                    <p class="text-xs text-gray-400 mb-1">زبائن كروت الولاء</p>
                     <h3 id="statClients" class="text-2xl font-black text-amber-400">0</h3>
                 </div>
                 <span class="text-3xl">💳</span>
             </div>
             <div class="card-dark p-5 rounded-2xl flex items-center justify-between">
                 <div>
-                    <p id="t_stat4" class="text-xs text-gray-400 mb-1">أيام العطل المغلقة</p>
+                    <p class="text-xs text-gray-400 mb-1">أيام العطل المغلقة</p>
                     <h3 id="statBlocked" class="text-2xl font-black text-red-400">0</h3>
                 </div>
                 <span class="text-3xl">🚫</span>
@@ -103,7 +123,7 @@
             <div class="lg:col-span-5 space-y-6">
                 <!-- Manual Booking Form -->
                 <div class="card-dark p-6 rounded-2xl space-y-4">
-                    <h2 id="t_manualBookingTitle" class="text-base font-bold gold-text">➕ إضافة حجز يدوي</h2>
+                    <h2 class="text-base font-bold gold-text">➕ إضافة حجز يدوي</h2>
                     <form onsubmit="handleManualBooking(event)" class="space-y-3">
                         <input type="text" id="mClientName" required placeholder="اسم الزبون *" class="w-full input-dark rounded-xl px-3.5 py-2.5 text-xs">
                         <input type="tel" id="mClientPhone" required placeholder="رقم الهاتف (05XXXXXXXX) *" dir="ltr" class="w-full input-dark rounded-xl px-3.5 py-2.5 text-xs text-right">
@@ -125,19 +145,21 @@
                                 <option value="22:35">22:35 م</option>
                             </select>
                         </div>
-                        <button type="submit" id="t_saveBookingBtn" class="w-full gold-btn py-2.5 rounded-xl text-xs shadow-md">حفظ الحجز</button>
+                        <button type="submit" class="w-full gold-btn py-2.5 rounded-xl text-xs shadow-md">حفظ الحجز</button>
                     </form>
                 </div>
 
                 <!-- Block Days -->
                 <div class="card-dark p-6 rounded-2xl space-y-4">
-                    <h2 id="t_blockTitle" class="text-base font-bold text-red-400">🚫 إغلاق يوم كامل (عطلة)</h2>
-                    <form onsubmit="handleBlockDay(event)" class="flex gap-2">
+                    <h2 class="text-base font-bold text-red-400">🚫 إغلاق يوم كامل (عطلة)</h2>
+                    <form onsubmit="handleBlockDay(event)" class="flex flex-col sm:flex-row gap-2">
                         <input type="date" id="blockDate" required class="input-dark rounded-xl px-3 py-2 text-xs">
                         <input type="text" id="blockReason" placeholder="السبب" class="w-full input-dark rounded-xl px-3 py-2 text-xs">
-                        <button type="submit" id="t_blockBtn" class="bg-red-600 text-white font-bold px-4 py-2 rounded-xl text-xs">إغلاق</button>
+                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-xl text-xs whitespace-nowrap">إغلاق</button>
                     </form>
-                    <div id="blockedDaysList" class="flex flex-wrap gap-2 pt-2"></div>
+                    <div id="blockedDaysList" class="flex flex-wrap gap-2 pt-2">
+                        <!-- Blocked days with open buttons injected via JS -->
+                    </div>
                 </div>
             </div>
 
@@ -146,7 +168,7 @@
                 <!-- Bookings List -->
                 <div class="card-dark p-6 rounded-2xl space-y-4">
                     <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
-                        <h2 id="t_bookingsListTitle" class="text-base font-bold text-white">📋 قائمة الحجوزات</h2>
+                        <h2 class="text-base font-bold text-white">📋 قائمة الحجوزات</h2>
                     </div>
                     <div id="bookingsList" class="space-y-3 max-h-[350px] overflow-y-auto pr-1"></div>
                 </div>
@@ -154,7 +176,7 @@
                 <!-- Loyalty Cards Management List -->
                 <div class="card-dark p-6 rounded-2xl space-y-4 border border-amber-500/20">
                     <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
-                        <h2 id="t_loyaltyListTitle" class="text-base font-bold gold-text">💳 بطاقات ولاء الزبائن</h2>
+                        <h2 class="text-base font-bold gold-text">💳 بطاقات ولاء الزبائن</h2>
                         <span id="loyaltyCount" class="text-xs text-gray-400">0 زبون</span>
                     </div>
                     <div id="loyaltyList" class="space-y-3 max-h-[350px] overflow-y-auto pr-1"></div>
@@ -168,6 +190,7 @@
     <script>
         let adminPIN = "";
         let rawBookings = [];
+        let html5QrcodeScanner = null;
         let currentLang = 'ar';
 
         const regularSlots = ["18:00", "18:55", "19:50", "20:45", "21:40", "22:35"];
@@ -188,7 +211,7 @@
             };
             const res = await fetch(url, options);
             if (res.status === 401) {
-                alert("رمز PIN غير صحيح!");
+                alert("رمز PIN غير صحيح! (تأكد أن الرمز هو 4628)");
                 document.getElementById("authModal").classList.remove("hidden");
                 document.getElementById("dashboardContent").classList.add("hidden");
                 throw new Error("Unauthorized");
@@ -288,6 +311,40 @@
             }
         }
 
+        function startScanner() {
+            if (html5QrcodeScanner) return;
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: 250 },
+                async (scannedPhone) => {
+                    html5QrcodeScanner.stop();
+                    html5QrcodeScanner = null;
+                    await submitLoyaltyPoint(scannedPhone);
+                }
+            );
+        }
+
+        async function addPointManual() {
+            const phone = document.getElementById("loyaltyPhoneInput").value;
+            if (!phone) return alert("أدخل رقم الهاتف أولاً");
+            await submitLoyaltyPoint(phone);
+        }
+
+        async function submitLoyaltyPoint(phone) {
+            try {
+                const res = await apiFetch("/api/admin/loyalty/add-point", {
+                    method: "POST",
+                    body: JSON.stringify({ client_phone: phone })
+                });
+                const data = await res.json();
+                alert(data.message);
+                loadDashboardData();
+            } catch (err) {
+                alert("فشل إضافة النقطة!");
+            }
+        }
+
         function renderBookings(list) {
             const container = document.getElementById("bookingsList");
             container.innerHTML = "";
@@ -310,69 +367,4 @@
         }
 
         function renderLoyaltyCards(list) {
-            const container = document.getElementById("loyaltyList");
-            container.innerHTML = "";
-            document.getElementById("loyaltyCount").innerText = `${list.length} زبون`;
-
-            if (list.length === 0) {
-                container.innerHTML = "<p class='text-xs text-gray-500 text-center py-4'>لا توجد بطاقات ولاء مسجلة بعد.</p>";
-                return;
-            }
-
-            list.forEach(card => {
-                const item = document.createElement("div");
-                item.className = "input-dark p-3.5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs";
-                item.innerHTML = `
-                    <div class="space-y-1">
-                        <p class="font-bold text-white text-sm">${card.client_name || 'بدون اسم'} <span class="text-gray-400 font-normal">(${card.client_phone})</span></p>
-                        <div class="flex items-center gap-3 text-gray-300">
-                            <span>⭐ النقاط: <strong class="gold-text text-sm">${card.points}/5</strong></span>
-                            <span>🎁 المكافآت: <strong class="text-emerald-400">${card.total_rewards || 0}</strong></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="editPoints(${card.id}, ${card.points}, ${card.total_rewards})" class="bg-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-black px-3 py-1.5 rounded-lg font-bold transition">تعديل</button>
-                        <button onclick="deleteCard(${card.id})" class="bg-red-900/40 text-red-400 hover:bg-red-600 hover:text-white px-3 py-1.5 rounded-lg font-bold transition">حذف</button>
-                    </div>
-                `;
-                container.appendChild(item);
-            });
-        }
-
-        function renderBlockedDays(list) {
-            const container = document.getElementById("blockedDaysList");
-            container.innerHTML = "";
-            list.forEach(b => {
-                container.innerHTML += `<span class="bg-red-950 text-red-300 px-2.5 py-1 rounded-xl text-xs">📅 ${b.blocked_date}</span>`;
-            });
-        }
-
-        async function handleManualBooking(e) {
-            e.preventDefault();
-            const payload = {
-                client_name: document.getElementById("mClientName").value,
-                client_phone: document.getElementById("mClientPhone").value,
-                service_name: document.getElementById("mService").value,
-                booking_date: document.getElementById("mDate").value,
-                booking_time: document.getElementById("mTime").value,
-                notes: ""
-            };
-            const res = await apiFetch("/api/admin/manual-booking", { method: "POST", body: JSON.stringify(payload) });
-            if (res.ok) { alert("تم الحجز بنجاح!"); loadDashboardData(); }
-        }
-
-        async function handleBlockDay(e) {
-            e.preventDefault();
-            const payload = { blocked_date: document.getElementById("blockDate").value, reason: document.getElementById("blockReason").value };
-            const res = await apiFetch("/api/admin/block-day", { method: "POST", body: JSON.stringify(payload) });
-            if (res.ok) loadDashboardData();
-        }
-
-        async function cancelBooking(id) {
-            if (!confirm("تأكيد الإلغاء؟")) return;
-            const res = await apiFetch(`/api/admin/bookings/${id}`, { method: "DELETE" });
-            if (res.ok) loadDashboardData();
-        }
-    </script>
-</body>
-</html>
+            const container = document.getElementById("
