@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" id="htmlRoot">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم | صالون شاكر</title>
+    <title>SHAKER BARBER | Admin Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -21,10 +21,10 @@
     <!-- Auth Modal -->
     <div id="authModal" class="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50">
         <div class="card-dark p-6 rounded-2xl max-w-sm w-full space-y-4 text-center">
-            <h2 class="text-xl font-bold gold-text">🔐 تسجيل الدخول للوحة الآدمن</h2>
-            <p class="text-xs text-gray-400">أدخل رمز الـ PIN الخاص بك للدخول</p>
-            <input type="password" id="pinInput" placeholder="أدخل رمز PIN (مثال: 1234)" class="w-full input-dark rounded-xl px-4 py-3 text-center text-lg tracking-widest">
-            <button onclick="loginAdmin()" class="w-full gold-btn py-3 rounded-xl shadow-lg">دخول</button>
+            <h2 id="t_loginTitle" class="text-xl font-bold gold-text">🔐 تسجيل الدخول للوحة الآدمن</h2>
+            <p id="t_loginSubtitle" class="text-xs text-gray-400">أدخل رمز PIN الخاص بك للدخول</p>
+            <input type="password" id="pinInput" placeholder="PIN" class="w-full input-dark rounded-xl px-4 py-3 text-center text-lg tracking-widest">
+            <button onclick="loginAdmin()" id="t_loginBtn" class="w-full gold-btn py-3 rounded-xl shadow-lg">دخول</button>
         </div>
     </div>
 
@@ -32,31 +32,35 @@
     <div id="dashboardContent" class="max-w-6xl mx-auto space-y-6 hidden">
         
         <!-- Header -->
-        <header class="flex justify-between items-center bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800">
+        <header class="flex flex-col sm:flex-row justify-between items-center bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800 gap-4">
             <div>
-                <h1 class="text-2xl font-extrabold gold-text">لوحة إدارة الحجوزات ✂️</h1>
-                <p class="text-xs text-gray-400">متابعة الحجوزات والولاء وأيام العمل</p>
+                <h1 class="text-2xl font-extrabold gold-text">SHAKER BARBER ✂️</h1>
+                <p id="t_headerSub" class="text-xs text-gray-400">لوحة التحكم وإدارة الصالون</p>
             </div>
-            <button onclick="loadDashboardData()" class="input-dark px-4 py-2 rounded-xl text-xs font-bold hover:border-amber-500">🔄 تحديث البيانات</button>
+            <div class="flex items-center gap-3">
+                <select id="langSelect" onchange="changeLanguage(this.value)" class="input-dark px-3 py-1.5 rounded-xl text-xs font-bold">
+                    <option value="ar">العربية 🇸🇦</option>
+                    <option value="tr">Türkçe 🇹🇷</option>
+                    <option value="en">English 🇬🇧</option>
+                </select>
+                <button onclick="loadDashboardData()" id="t_refreshBtn" class="input-dark px-4 py-1.5 rounded-xl text-xs font-bold hover:border-amber-500">🔄 تحديث</button>
+            </div>
         </header>
 
-        <!-- QR Scanner Section -->
+        <!-- Hour Slot Control Panel (NEW FEATURE) -->
         <div class="card-dark p-6 rounded-2xl space-y-4 border border-amber-500/30">
-            <h2 class="text-base font-bold gold-text flex items-center gap-2">
-                <span>📷</span> مسح رمز QR كارت الولاء للزبون
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                <div>
-                    <div id="reader" class="rounded-2xl overflow-hidden border border-zinc-700 bg-black max-w-xs mx-auto"></div>
-                    <button onclick="startScanner()" class="w-full gold-btn py-2.5 rounded-xl text-xs mt-3">تشغيل الكاميرا للمسح</button>
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <h2 class="text-base font-bold gold-text flex items-center gap-2">
+                    <span>⏰</span> إغلاق / فتح ساعات محددة في اليوم
+                </h2>
+                <div class="flex items-center gap-2">
+                    <label class="text-xs text-gray-400">اختر التاريخ:</label>
+                    <input type="date" id="slotControlDate" onchange="loadSlotsControl()" class="input-dark px-3 py-1.5 rounded-xl text-xs">
                 </div>
-                <div class="space-y-3">
-                    <p class="text-xs text-gray-400">أو أضف نقطة يدوياً برقم هاتف الزبون:</p>
-                    <div class="flex gap-2">
-                        <input type="tel" id="loyaltyPhoneInput" placeholder="05XXXXXXXX" dir="ltr" class="input-dark rounded-xl px-3 py-2 text-xs w-full text-right">
-                        <button onclick="addPointManual()" class="gold-btn px-4 py-2 rounded-xl text-xs whitespace-nowrap">+1 نقطة</button>
-                    </div>
-                </div>
+            </div>
+            <p class="text-xs text-gray-400">اضغط على الساعة لإغلاقها أو إعادة فتحها للزبائن:</p>
+            <div id="slotButtonsGrid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2 pt-2">
+                <!-- Injected via JS -->
             </div>
         </div>
 
@@ -64,28 +68,28 @@
         <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div class="card-dark p-5 rounded-2xl flex items-center justify-between">
                 <div>
-                    <p class="text-xs text-gray-400 mb-1">إجمالي الحجوزات</p>
+                    <p id="t_stat1" class="text-xs text-gray-400 mb-1">إجمالي الحجوزات</p>
                     <h3 id="statBookings" class="text-2xl font-black text-white">0</h3>
                 </div>
                 <span class="text-3xl">📅</span>
             </div>
             <div class="card-dark p-5 rounded-2xl flex items-center justify-between">
                 <div>
-                    <p class="text-xs text-gray-400 mb-1">الإيرادات المتوقعة</p>
+                    <p id="t_stat2" class="text-xs text-gray-400 mb-1">الإيرادات المتوقعة</p>
                     <h3 id="statRevenue" class="text-2xl font-black gold-text">0 TL</h3>
                 </div>
                 <span class="text-3xl">💰</span>
             </div>
             <div class="card-dark p-5 rounded-2xl flex items-center justify-between">
                 <div>
-                    <p class="text-xs text-gray-400 mb-1">زبائن كروت الولاء</p>
+                    <p id="t_stat3" class="text-xs text-gray-400 mb-1">زبائن كروت الولاء</p>
                     <h3 id="statClients" class="text-2xl font-black text-amber-400">0</h3>
                 </div>
                 <span class="text-3xl">💳</span>
             </div>
             <div class="card-dark p-5 rounded-2xl flex items-center justify-between">
                 <div>
-                    <p class="text-xs text-gray-400 mb-1">أيام العطل المغلقة</p>
+                    <p id="t_stat4" class="text-xs text-gray-400 mb-1">أيام العطل المغلقة</p>
                     <h3 id="statBlocked" class="text-2xl font-black text-red-400">0</h3>
                 </div>
                 <span class="text-3xl">🚫</span>
@@ -99,7 +103,7 @@
             <div class="lg:col-span-5 space-y-6">
                 <!-- Manual Booking Form -->
                 <div class="card-dark p-6 rounded-2xl space-y-4">
-                    <h2 class="text-base font-bold gold-text">➕ إضافة حجز يدوي</h2>
+                    <h2 id="t_manualBookingTitle" class="text-base font-bold gold-text">➕ إضافة حجز يدوي</h2>
                     <form onsubmit="handleManualBooking(event)" class="space-y-3">
                         <input type="text" id="mClientName" required placeholder="اسم الزبون *" class="w-full input-dark rounded-xl px-3.5 py-2.5 text-xs">
                         <input type="tel" id="mClientPhone" required placeholder="رقم الهاتف (05XXXXXXXX) *" dir="ltr" class="w-full input-dark rounded-xl px-3.5 py-2.5 text-xs text-right">
@@ -121,17 +125,17 @@
                                 <option value="22:35">22:35 م</option>
                             </select>
                         </div>
-                        <button type="submit" class="w-full gold-btn py-2.5 rounded-xl text-xs shadow-md">حفظ الحجز</button>
+                        <button type="submit" id="t_saveBookingBtn" class="w-full gold-btn py-2.5 rounded-xl text-xs shadow-md">حفظ الحجز</button>
                     </form>
                 </div>
 
                 <!-- Block Days -->
                 <div class="card-dark p-6 rounded-2xl space-y-4">
-                    <h2 class="text-base font-bold text-red-400">🚫 إغلاق يوم عطلة</h2>
+                    <h2 id="t_blockTitle" class="text-base font-bold text-red-400">🚫 إغلاق يوم كامل (عطلة)</h2>
                     <form onsubmit="handleBlockDay(event)" class="flex gap-2">
                         <input type="date" id="blockDate" required class="input-dark rounded-xl px-3 py-2 text-xs">
                         <input type="text" id="blockReason" placeholder="السبب" class="w-full input-dark rounded-xl px-3 py-2 text-xs">
-                        <button type="submit" class="bg-red-600 text-white font-bold px-4 py-2 rounded-xl text-xs">إغلاق</button>
+                        <button type="submit" id="t_blockBtn" class="bg-red-600 text-white font-bold px-4 py-2 rounded-xl text-xs">إغلاق</button>
                     </form>
                     <div id="blockedDaysList" class="flex flex-wrap gap-2 pt-2"></div>
                 </div>
@@ -142,7 +146,7 @@
                 <!-- Bookings List -->
                 <div class="card-dark p-6 rounded-2xl space-y-4">
                     <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
-                        <h2 class="text-base font-bold text-white">📋 قائمة الحجوزات</h2>
+                        <h2 id="t_bookingsListTitle" class="text-base font-bold text-white">📋 قائمة الحجوزات</h2>
                     </div>
                     <div id="bookingsList" class="space-y-3 max-h-[350px] overflow-y-auto pr-1"></div>
                 </div>
@@ -150,12 +154,10 @@
                 <!-- Loyalty Cards Management List -->
                 <div class="card-dark p-6 rounded-2xl space-y-4 border border-amber-500/20">
                     <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
-                        <h2 class="text-base font-bold gold-text">💳 بطاقات ولاء الزبائن</h2>
+                        <h2 id="t_loyaltyListTitle" class="text-base font-bold gold-text">💳 بطاقات ولاء الزبائن</h2>
                         <span id="loyaltyCount" class="text-xs text-gray-400">0 زبون</span>
                     </div>
-                    <div id="loyaltyList" class="space-y-3 max-h-[350px] overflow-y-auto pr-1">
-                        <!-- Loyalty cards injected via JS -->
-                    </div>
+                    <div id="loyaltyList" class="space-y-3 max-h-[350px] overflow-y-auto pr-1"></div>
                 </div>
             </div>
 
@@ -166,7 +168,10 @@
     <script>
         let adminPIN = "";
         let rawBookings = [];
-        let html5QrcodeScanner = null;
+        let currentLang = 'ar';
+
+        const regularSlots = ["18:00", "18:55", "19:50", "20:45", "21:40", "22:35"];
+        const weekendSlots = ["11:00", "11:55", "12:50", "13:45", "14:40", "17:00", "17:55", "18:50", "19:45", "20:40", "21:35", "22:30"];
 
         function loginAdmin() {
             const input = document.getElementById("pinInput").value;
@@ -213,44 +218,73 @@
 
                 document.getElementById("authModal").classList.add("hidden");
                 document.getElementById("dashboardContent").classList.remove("hidden");
-                document.getElementById("mDate").value = new Date().toISOString().split('T')[0];
+                
+                const todayStr = new Date().toISOString().split('T')[0];
+                document.getElementById("mDate").value = todayStr;
+                document.getElementById("slotControlDate").value = todayStr;
+                
+                loadSlotsControl();
 
             } catch (err) {
                 console.error(err);
             }
         }
 
-        function startScanner() {
-            if (html5QrcodeScanner) return;
-            html5QrcodeScanner = new Html5Qrcode("reader");
-            html5QrcodeScanner.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: 250 },
-                async (scannedPhone) => {
-                    html5QrcodeScanner.stop();
-                    html5QrcodeScanner = null;
-                    await submitLoyaltyPoint(scannedPhone);
-                }
-            );
-        }
+        async function loadSlotsControl() {
+            const dateVal = document.getElementById("slotControlDate").value;
+            if (!dateVal) return;
 
-        async function addPointManual() {
-            const phone = document.getElementById("loyaltyPhoneInput").value;
-            if (!phone) return alert("أدخل رقم الهاتف أولاً");
-            await submitLoyaltyPoint(phone);
-        }
+            const grid = document.getElementById("slotButtonsGrid");
+            grid.innerHTML = "<p class='text-xs text-gray-500 col-span-full'>جاري التحميل...</p>";
 
-        async function submitLoyaltyPoint(phone) {
+            const d = new Date(dateVal);
+            const isWeekend = (d.getDay() === 0 || d.getDay() === 6);
+            const activeSlots = isWeekend ? weekendSlots : regularSlots;
+
             try {
-                const res = await apiFetch("/api/admin/loyalty/add-point", {
-                    method: "POST",
-                    body: JSON.stringify({ client_phone: phone })
-                });
+                const res = await fetch(`/api/availability/${dateVal}`);
                 const data = await res.json();
-                alert(data.message);
-                loadDashboardData();
+                grid.innerHTML = "";
+
+                activeSlots.forEach(slot => {
+                    const isBlocked = data.blocked_slots ? data.blocked_slots.includes(slot) : false;
+                    const isBooked = data.booked_times.includes(slot);
+
+                    const btn = document.createElement("button");
+                    btn.type = "button";
+                    
+                    if (isBooked) {
+                        btn.className = "bg-red-950/40 text-red-400 border border-red-900/40 p-2.5 rounded-xl text-xs font-bold cursor-not-allowed";
+                        btn.innerText = `${slot} (محجوز)`;
+                        btn.disabled = true;
+                    } else if (isBlocked) {
+                        btn.className = "bg-red-600 text-white border border-red-500 p-2.5 rounded-xl text-xs font-bold hover:bg-red-700 transition";
+                        btn.innerText = `${slot} 🚫 (مغلقة)`;
+                        btn.onclick = () => toggleSlot(dateVal, slot);
+                    } else {
+                        btn.className = "bg-emerald-900/40 text-emerald-400 border border-emerald-700/50 p-2.5 rounded-xl text-xs font-bold hover:bg-emerald-800 hover:text-white transition";
+                        btn.innerText = `${slot} 🟢 (متاحة)`;
+                        btn.onclick = () => toggleSlot(dateVal, slot);
+                    }
+
+                    grid.appendChild(btn);
+                });
             } catch (err) {
-                alert("فشل إضافة النقطة!");
+                grid.innerHTML = "<p class='text-xs text-red-400 col-span-full'>فشل تحميل المواعيد</p>";
+            }
+        }
+
+        async function toggleSlot(dateVal, slotStr) {
+            try {
+                const res = await apiFetch("/api/admin/toggle-slot-block", {
+                    method: "POST",
+                    body: JSON.stringify({ blocked_date: dateVal, blocked_time: slotStr, reason: "استراحة" })
+                });
+                if (res.ok) {
+                    loadSlotsControl();
+                }
+            } catch (err) {
+                alert("حدث خطأ في تغيير حالة الساعة!");
             }
         }
 
@@ -305,44 +339,6 @@
             });
         }
 
-        async function editPoints(cardId, currentPoints, currentRewards) {
-            const newPoints = prompt("أدخل عدد النقاط الجديدة (من 0 إلى 5):", currentPoints);
-            if (newPoints === null) return;
-            
-            const pointsVal = parseInt(newPoints);
-            if (isNaN(pointsVal) || pointsVal < 0 || pointsVal > 5) {
-                return alert("يرجى إدخال رقم صحيح بين 0 و 5");
-            }
-
-            try {
-                const res = await apiFetch(`/api/admin/loyalty/cards/${cardId}`, {
-                    method: "PUT",
-                    body: JSON.stringify({ points: pointsVal, total_rewards: currentRewards })
-                });
-                if (res.ok) {
-                    alert("✅ تم التحديث بنجاح!");
-                    loadDashboardData();
-                }
-            } catch (err) {
-                alert("❌ فشل التعديل!");
-            }
-        }
-
-        async function deleteCard(cardId) {
-            if (!confirm("هل أنت متأكد من حذف بطاقة الولاء لهذا الزبون؟")) return;
-            try {
-                const res = await apiFetch(`/api/admin/loyalty/cards/${cardId}`, {
-                    method: "DELETE"
-                });
-                if (res.ok) {
-                    alert("🗑️ تم الحذف بنجاح!");
-                    loadDashboardData();
-                }
-            } catch (err) {
-                alert("❌ فشل حذف البطاقة!");
-            }
-        }
-
         function renderBlockedDays(list) {
             const container = document.getElementById("blockedDaysList");
             container.innerHTML = "";
@@ -362,7 +358,7 @@
                 notes: ""
             };
             const res = await apiFetch("/api/admin/manual-booking", { method: "POST", body: JSON.stringify(payload) });
-            if (res.ok) { alert("تم الحجز اليدوي بنجاح!"); loadDashboardData(); }
+            if (res.ok) { alert("تم الحجز بنجاح!"); loadDashboardData(); }
         }
 
         async function handleBlockDay(e) {
