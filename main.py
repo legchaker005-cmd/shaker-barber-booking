@@ -2,9 +2,9 @@ from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional
 from supabase import create_client, Client
-from pydantic import BaseModel
+from datetime import datetime
 import os
 
 app = FastAPI()
@@ -39,8 +39,6 @@ class UpdateLoyaltyRequest(BaseModel):
     points: int
     total_rewards: Optional[int] = 0
 
-
-
 class WorkingHourRequest(BaseModel):
     day_of_week: str
     start_time_1: str
@@ -49,72 +47,95 @@ class WorkingHourRequest(BaseModel):
     start_time_2: Optional[str] = ""
     end_time_2: Optional[str] = ""
 
-@app.get("/api/admin/working-hours")
-def get_working_hours(authorized: bool = Depends(verify_admin_pin)):
-    res = supabase.table("working_hours").select("*").execute()
-    return res.data or []
-
-@app.post("/api/admin/working-hours")
-def update_working_hours(data: WorkingHourRequest, authorized: bool = Depends(verify_admin_pin)):
-    # تحقق إذا اليوم موجود مسبقاً، قم بالتحديث أو الإضافة
-    existing = supabase.table("working_hours").select("*").eq("day_of_week", data.day_of_week).execute()
-    if existing.data:
-        supabase.table("working_hours").update(data.dict()).eq("day_of_week", data.day_of_week).execute()
-    else:
-        supabase.table("working_hours").insert(data.dict()).execute()
-    return {"message": "تم تحديث ساعات العمل بنجاح!"}
-
-# Admin PIN Verification (4628) - مع تنظيف النشر والمسافات
+# Admin PIN Verification (4628)
 def verify_admin_pin(x_admin_pin: str = Header(None)):
     pin = str(x_admin_pin).strip() if x_admin_pin else ""
     if pin != "4628":
         raise HTTPException(status_code=401, detail="رمز PIN غير صحيح!")
     return True
 
+def generate_time_slots(start_str: str, end_str: str, step_minutes: int = 55):
+    if not start_str or not end_str:
+        return []
+    try:
+        sh, sm = map(int, start_str.split(":"))
+        eh, em = map(int, end_str.split(":"))
+        curr = sh * 60 + sm
+        end = eh * 60 + em
+        slots = []
+        while curr <= end:
+            h = curr // 60
+            m = curr % 60
+            slots.append(f"{h:02d}:{m:02d}")
+            curr += step_minutes
+        return slots
+    except Exception:
+        return []
+
+def get_slots_for_date(booking_date: str):
+    dt = datetime.strptime(booking_date, "%Y-%m-%d")
+    day_names = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+    day_key = day_names[dt.weekday()]
+    is_weekend = dt.weekday() in [5, 6]
+    group_key = "weekend" if is_weekend else "weekday"
+
+    wh_res = supabase.table("working_hours").select("*").execute()
+    wh_map = {item["day_of_week"]: item for item in (wh_res.data or [])}
+
+    config = wh_map.get(day_key) or wh_map.get(group_key)
+    if config:
+        slots = generate_time_slots(config.get("start_time_1", ""), config.get("end_time_1", ""))
+        if config.get("has_break") and config.get("start_time_2") and config.get("end_time_2"):
+            slots += generate_time_slots(config.get("start_time_2"), config.get("end_time_2"))
+        return slots
+
+    # Default fallback schedule
+    if is_weekend:
+        return ["11:00", "11:55", "12:50", "13:45", "14:40", "17:00", "17:55", "18:50", "19:45", "20:40", "21:35", "22:30"]
+    return ["18:00", "18:55", "19:50", "20:45", "21:40", "22:35"]
+
 # --- PUBLIC ENDPOINTS ---
 
 @app.get("/api/availability/{booking_date}")
 def get_availability(booking_date: str):
-    # Check if full day is blocked
+    available_slots = get_slots_for_date(booking_date)
+
     blocked = supabase.table("blocked_days").select("*").eq("blocked_date", booking_date).execute()
     if blocked.data:
         return {
             "is_blocked": True,
             "blocked_reason": blocked.data[0].get("reason", "عطلة"),
+            "available_slots": available_slots,
             "booked_times": [],
             "blocked_slots": []
         }
     
-    # Fetch booked times
     bookings = supabase.table("bookings").select("booking_time").eq("booking_date", booking_date).execute()
     booked_times = [b["booking_time"] for b in bookings.data] if bookings.data else []
     
-    # Fetch specific blocked slots for this date
     slots = supabase.table("blocked_slots").select("blocked_time").eq("blocked_date", booking_date).execute()
     blocked_slots = [s["blocked_time"] for s in slots.data] if slots.data else []
     
     return {
         "is_blocked": False,
         "blocked_reason": None,
+        "available_slots": available_slots,
         "booked_times": booked_times,
         "blocked_slots": blocked_slots
     }
 
 @app.post("/api/bookings")
 def create_booking(booking: BookingRequest):
-    # Check full day block
     blocked = supabase.table("blocked_days").select("*").eq("blocked_date", booking.booking_date).execute()
     if blocked.data:
         raise HTTPException(status_code=400, detail="عذراً، هذا اليوم مغلق ولا يمكن الحجز فيه.")
 
-    # Check specific slot block
     slot_blocked = supabase.table("blocked_slots").select("*")\
         .eq("blocked_date", booking.booking_date)\
-        .eq("blocked_time", booking.booking_time).execute()
+        .eq("booking_time", booking.booking_time).execute()
     if slot_blocked.data:
         raise HTTPException(status_code=400, detail="عذراً، هذه الساعة غير متاحة للحجز حالياً.")
 
-    # Check existing booking
     existing = supabase.table("bookings").select("*")\
         .eq("booking_date", booking.booking_date)\
         .eq("booking_time", booking.booking_time).execute()
@@ -146,6 +167,25 @@ def get_loyalty_card(client_phone: str):
 
 # --- ADMIN ENDPOINTS ---
 
+@app.get("/api/admin/working-hours")
+def get_working_hours(authorized: bool = Depends(verify_admin_pin)):
+    res = supabase.table("working_hours").select("*").execute()
+    return res.data or []
+
+@app.post("/api/admin/working-hours")
+def update_working_hours(data: WorkingHourRequest, authorized: bool = Depends(verify_admin_pin)):
+    existing = supabase.table("working_hours").select("*").eq("day_of_week", data.day_of_week).execute()
+    if existing.data:
+        supabase.table("working_hours").update(data.dict()).eq("day_of_week", data.day_of_week).execute()
+    else:
+        supabase.table("working_hours").insert(data.dict()).execute()
+    return {"message": "تم تحديث ساعات العمل بنجاح!"}
+
+@app.delete("/api/admin/working-hours/{day_of_week}")
+def reset_working_hours(day_of_week: str, authorized: bool = Depends(verify_admin_pin)):
+    supabase.table("working_hours").delete().eq("day_of_week", day_of_week).execute()
+    return {"message": "تم إعادة ضبط الساعات للوضع الافتراضي."}
+
 @app.get("/api/admin/stats")
 def get_admin_stats(authorized: bool = Depends(verify_admin_pin)):
     bookings_res = supabase.table("bookings").select("*").execute()
@@ -153,7 +193,14 @@ def get_admin_stats(authorized: bool = Depends(verify_admin_pin)):
     cards_res = supabase.table("loyalty_cards").select("*").execute()
     
     all_bookings = bookings_res.data or []
-    price_map = {"تدرج احترافي Fade": 350, "قص شعر عصري": 250, "تحديد وحلاقة اللحية": 150}
+    price_map = {
+        "حلاقة شعر ولحية": 350,
+        "حلاقة شعر": 250,
+        "حلاقة لحية": 150,
+        "تدرج احترافي Fade": 350,
+        "قص شعر عصري": 250,
+        "تحديد وحلاقة اللحية": 150
+    }
     total_revenue = sum(price_map.get(b.get("service_name"), 0) for b in all_bookings)
     
     return {
@@ -206,56 +253,3 @@ def toggle_slot_block(data: BlockSlotRequest, authorized: bool = Depends(verify_
         return {"message": f"تم فتح الساعة {data.blocked_time} بنجاح!", "blocked": False}
     else:
         supabase.table("blocked_slots").insert(data.dict()).execute()
-        return {"message": f"تم إغلاق الساعة {data.blocked_time} بنجاح!", "blocked": True}
-
-@app.get("/api/admin/loyalty/cards")
-def get_all_loyalty_cards(authorized: bool = Depends(verify_admin_pin)):
-    res = supabase.table("loyalty_cards").select("*").order("id", desc=True).execute()
-    return res.data or []
-
-@app.put("/api/admin/loyalty/cards/{card_id}")
-def update_loyalty_card(card_id: int, data: UpdateLoyaltyRequest, authorized: bool = Depends(verify_admin_pin)):
-    supabase.table("loyalty_cards").update({"points": data.points, "total_rewards": data.total_rewards}).eq("id", card_id).execute()
-    return {"message": "تم التحديث بنجاح!"}
-
-@app.delete("/api/admin/loyalty/cards/{card_id}")
-def delete_loyalty_card(card_id: int, authorized: bool = Depends(verify_admin_pin)):
-    supabase.table("loyalty_cards").delete().eq("id", card_id).execute()
-    return {"message": "تم الحذف بنجاح."}
-
-@app.post("/api/admin/loyalty/add-point")
-def add_loyalty_point(data: AddPointRequest, authorized: bool = Depends(verify_admin_pin)):
-    res = supabase.table("loyalty_cards").select("*").eq("client_phone", data.client_phone).execute()
-    if not res.data:
-        card_data = {"client_phone": data.client_phone, "client_name": "زبون صالون", "points": 1, "total_rewards": 0}
-        supabase.table("loyalty_cards").insert(card_data).execute()
-        return {"message": "تم إنشاء بطاقة جديدة وإضافة النقطة الأولى!", "points": 1, "reward": False}
-    
-    card = res.data[0]
-    new_points = card["points"] + 1
-    total_rewards = card.get("total_rewards", 0)
-    reward_unlocked = False
-
-    if new_points >= 5:
-        new_points = 0
-        total_rewards += 1
-        reward_unlocked = True
-
-    supabase.table("loyalty_cards").update({"points": new_points, "total_rewards": total_rewards}).eq("client_phone", data.client_phone).execute()
-    msg = "🎉 مبروك! الزبون أتم 5 نقاط وحصل على حلاقة مجانية!" if reward_unlocked else f"تم إضافة نقطة بنجاح! النقاط: {new_points}/5"
-    return {"message": msg, "points": new_points, "reward": reward_unlocked}
-
-# Serve HTML Files
-@app.get("/loyalty")
-def serve_loyalty_page():
-    return FileResponse("loyalty.html")
-
-@app.get("/admin")
-def serve_admin_page():
-    return FileResponse("admin.html")
-
-@app.get("/")
-def serve_index_page():
-    return FileResponse("index.html")
-
-app.mount("/", StaticFiles(directory=".", html=True), name="static")
