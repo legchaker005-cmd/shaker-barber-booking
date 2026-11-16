@@ -129,39 +129,54 @@ def get_availability(booking_date: str):
     }
 
 @app.post("/api/bookings")
-def create_booking(booking: BookingRequest):
-    blocked = supabase.table("blocked_days").select("*").eq("blocked_date", booking.booking_date).execute()
-    if blocked.data:
-        raise HTTPException(status_code=400, detail="عذراً، هذا اليوم مغلق ولا يمكن الحجز فيه.")
-
-    slot_blocked = supabase.table("blocked_slots").select("*")\
-        .eq("blocked_date", booking.booking_date)\
-        .eq("booking_time", booking.booking_time).execute()
-    if slot_blocked.data:
-        raise HTTPException(status_code=400, detail="عذراً، هذه الساعة غير متاحة للحجز حالياً.")
-
-    existing = supabase.table("bookings").select("*")\
-        .eq("booking_date", booking.booking_date)\
-        .eq("booking_time", booking.booking_time).execute()
-    
-    if existing.data:
-        raise HTTPException(status_code=400, detail="عذراً، هذا الموعد تم حجزه للتو!")
-
-    res = supabase.table("bookings").insert(booking.dict()).execute()
-    if not res.data:
-        raise HTTPException(status_code=500, detail="حدث خطأ أثناء حفظ الحجز.")
+def create_booking(data: BookingRequest):
+    try:
+        # 1. إدخال الحجز في جدول bookings
+        booking_data = {
+            "client_name": data.client_name,
+            "client_phone": data.client_phone,
+            "service_name": data.service_name,
+            "booking_date": data.booking_date,
+            "booking_time": data.booking_time,
+            "notes": data.notes or ""
+        }
+        res = supabase.table("bookings").insert(booking_data).execute()
         
-    card = supabase.table("loyalty_cards").select("*").eq("client_phone", booking.client_phone).execute()
-    if not card.data:
-        supabase.table("loyalty_cards").insert({
-            "client_phone": booking.client_phone,
-            "client_name": booking.client_name,
-            "points": 0,
-            "total_rewards": 0
-        }).execute()
-
-    return {"message": "تم تأكيد حجزك بنجاح!"}
-
+        # 2. إدارة نقاط الولاء تلقائياً للزبون بناءً على رقم الهاتف
+        phone = data.client_phone
+        card_res = supabase.table("loyalty_cards").select("*").eq("client_phone", phone).execute()
+        
+        if not card_res.data:
+            # إنشاء بطاقة جديدة إذا لم تكن موجودة
+            new_card = {
+                "client_phone": phone,
+                "client_name": data.client_name,
+                "points": 1,
+                "total_rewards": 0
+            }
+            supabase.table("loyalty_cards").insert(new_card).execute()
+        else:
+            # تحديث النقاط للبطاقة الموجودة
+            card = card_res.data[0]
+            new_points = card.get("points", 0) + 1
+            total_rewards = card.get("total_rewards", 0)
+            
+            if new_points >= 5:
+                new_points = 0
+                total_rewards += 1
+                
+            supabase.table("loyalty_cards").update({
+                "points": new_points,
+                "total_rewards": total_rewards,
+                "client_name": data.client_name
+            }).eq("client_phone", phone).execute()
+            
+        return {"message": "تم الحجز بنجاح!"}
+        
+    except Exception as e:
+        print(f"Booking Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+        
 @app.get("/api/loyalty/{client_phone}")
 def get_loyalty_card(client_phone: str):
     res = supabase.table("loyalty_cards").select("*").eq("client_phone", client_phone).execute()
