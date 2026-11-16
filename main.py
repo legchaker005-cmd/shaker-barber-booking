@@ -4,6 +4,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Optional, List
 from supabase import create_client, Client
+from pydantic import BaseModel
 import os
 
 app = FastAPI()
@@ -37,6 +38,31 @@ class AddPointRequest(BaseModel):
 class UpdateLoyaltyRequest(BaseModel):
     points: int
     total_rewards: Optional[int] = 0
+
+
+
+class WorkingHourRequest(BaseModel):
+    day_of_week: str
+    start_time_1: str
+    end_time_1: str
+    has_break: bool = False
+    start_time_2: Optional[str] = ""
+    end_time_2: Optional[str] = ""
+
+@app.get("/api/admin/working-hours")
+def get_working_hours(authorized: bool = Depends(verify_admin_pin)):
+    res = supabase.table("working_hours").select("*").execute()
+    return res.data or []
+
+@app.post("/api/admin/working-hours")
+def update_working_hours(data: WorkingHourRequest, authorized: bool = Depends(verify_admin_pin)):
+    # تحقق إذا اليوم موجود مسبقاً، قم بالتحديث أو الإضافة
+    existing = supabase.table("working_hours").select("*").eq("day_of_week", data.day_of_week).execute()
+    if existing.data:
+        supabase.table("working_hours").update(data.dict()).eq("day_of_week", data.day_of_week).execute()
+    else:
+        supabase.table("working_hours").insert(data.dict()).execute()
+    return {"message": "تم تحديث ساعات العمل بنجاح!"}
 
 # Admin PIN Verification (4628) - مع تنظيف النشر والمسافات
 def verify_admin_pin(x_admin_pin: str = Header(None)):
