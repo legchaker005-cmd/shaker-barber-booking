@@ -54,7 +54,7 @@ def verify_admin_pin(x_admin_pin: str = Header(None)):
         raise HTTPException(status_code=401, detail="رمز PIN غير صحيح!")
     return True
 
-def generate_time_slots(start_str: str, end_str: str, step_minutes: int = 55):
+def generate_time_slots(start_str: str, end_str: str, step_minutes: int = 70): # <--- غيرناها إلى 70 دقيقة
     if not start_str or not end_str:
         return []
     try:
