@@ -253,3 +253,56 @@ def toggle_slot_block(data: BlockSlotRequest, authorized: bool = Depends(verify_
         return {"message": f"تم فتح الساعة {data.blocked_time} بنجاح!", "blocked": False}
     else:
         supabase.table("blocked_slots").insert(data.dict()).execute()
+        return {"message": f"تم إغلاق الساعة {data.blocked_time} بنجاح!", "blocked": True}
+
+@app.get("/api/admin/loyalty/cards")
+def get_all_loyalty_cards(authorized: bool = Depends(verify_admin_pin)):
+    res = supabase.table("loyalty_cards").select("*").order("id", desc=True).execute()
+    return res.data or []
+
+@app.put("/api/admin/loyalty/cards/{card_id}")
+def update_loyalty_card(card_id: int, data: UpdateLoyaltyRequest, authorized: bool = Depends(verify_admin_pin)):
+    supabase.table("loyalty_cards").update({"points": data.points, "total_rewards": data.total_rewards}).eq("id", card_id).execute()
+    return {"message": "تم التحديث بنجاح!"}
+
+@app.delete("/api/admin/loyalty/cards/{card_id}")
+def delete_loyalty_card(card_id: int, authorized: bool = Depends(verify_admin_pin)):
+    supabase.table("loyalty_cards").delete().eq("id", card_id).execute()
+    return {"message": "تم الحذف بنجاح."}
+
+@app.post("/api/admin/loyalty/add-point")
+def add_loyalty_point(data: AddPointRequest, authorized: bool = Depends(verify_admin_pin)):
+    res = supabase.table("loyalty_cards").select("*").eq("client_phone", data.client_phone).execute()
+    if not res.data:
+        card_data = {"client_phone": data.client_phone, "client_name": "زبون صالون", "points": 1, "total_rewards": 0}
+        supabase.table("loyalty_cards").insert(card_data).execute()
+        return {"message": "تم إنشاء بطاقة جديدة وإضافة النقطة الأولى!", "points": 1, "reward": False}
+    
+    card = res.data[0]
+    new_points = card["points"] + 1
+    total_rewards = card.get("total_rewards", 0)
+    reward_unlocked = False
+
+    if new_points >= 5:
+        new_points = 0
+        total_rewards += 1
+        reward_unlocked = True
+
+    supabase.table("loyalty_cards").update({"points": new_points, "total_rewards": total_rewards}).eq("client_phone", data.client_phone).execute()
+    msg = "🎉 مبروك! الزبون أتم 5 حلاقات والحلاقة 6 مجانية!" if reward_unlocked else f"تم إضافة نقطة بنجاح! النقاط: {new_points}/5"
+    return {"message": msg, "points": new_points, "reward": reward_unlocked}
+
+# Serve HTML Files
+@app.get("/loyalty")
+def serve_loyalty_page():
+    return FileResponse("loyalty.html")
+
+@app.get("/admin")
+def serve_admin_page():
+    return FileResponse("admin.html")
+
+@app.get("/")
+def serve_index_page():
+    return FileResponse("index.html")
+
+app.mount("/", StaticFiles(directory=".", html=True), name="static")
