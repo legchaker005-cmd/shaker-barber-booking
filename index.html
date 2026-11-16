@@ -59,7 +59,7 @@
                     <div class="space-y-4 text-sm">
                         <div class="flex justify-between items-center text-gray-400">
                             <span id="t_serviceLabel">الخدمة:</span>
-                            <span id="summaryService" class="font-bold text-white">تدرج احترافي Fade</span>
+                            <span id="summaryService" class="font-bold text-white">حلاقة شعر ولحية</span>
                         </div>
                         <div class="flex justify-between items-center text-gray-400">
                             <span id="t_timeLabel">التاريخ والوقت:</span>
@@ -67,7 +67,7 @@
                         </div>
                         <div class="border-t border-zinc-800 pt-4 flex justify-between items-center">
                             <span id="t_totalLabel" class="text-base font-bold">الإجمالي:</span>
-                            <span id="summaryPrice" class="text-xl font-extrabold gold-text">350 ل.ت</span>
+                            <span id="summaryPrice" class="text-xl font-extrabold gold-text">350 TL</span>
                         </div>
                     </div>
 
@@ -81,7 +81,7 @@
             <!-- Right Column: Booking Controls & Form -->
             <div class="lg:col-span-8 order-1 lg:order-2 space-y-6">
                 
-                <!-- Section 1: Date & Time Picker (Numbered 1) -->
+                <!-- Section 1: Date & Time Picker -->
                 <div class="card-dark p-6 rounded-2xl space-y-5">
                     <div class="flex items-center gap-2">
                         <span class="w-6 h-6 rounded-full gold-btn text-xs flex items-center justify-center font-bold">1</span>
@@ -108,7 +108,7 @@
                     </div>
                 </div>
 
-                <!-- Section 2: Service & Client Details (Numbered 2) -->
+                <!-- Section 2: Service & Client Details -->
                 <div class="card-dark p-6 rounded-2xl space-y-5">
                     <div class="flex items-center gap-2">
                         <span class="w-6 h-6 rounded-full gold-btn text-xs flex items-center justify-center font-bold">2</span>
@@ -137,8 +137,8 @@
                         </div>
 
                         <div>
-                            <label id="t_notesLabel" class="block text-xs text-gray-400 mb-1.5">ملاحظات أو تفاصيل القصة (اختياري)...</label>
-                            <textarea id="notes" rows="2" placeholder="أي تفاصيل إضافية تحب أن تعرفني بها..." class="w-full input-dark rounded-xl px-4 py-2.5 text-sm"></textarea>
+                            <label id="t_notesLabel" class="block text-xs text-gray-400 mb-1.5">رقم الغرفة أو ملاحظات (مهم)...</label>
+                            <textarea id="notes" rows="2" placeholder="اكتب رقم غرفتك هنا..." class="w-full input-dark rounded-xl px-4 py-2.5 text-sm"></textarea>
                         </div>
                     </form>
                 </div>
@@ -184,18 +184,15 @@
     <script>
         const MY_WHATSAPP_NUMBER = "905012359597"; // ضع رقم هاتفك هنا
 
-        const regularSlots = ["18:00", "18:55", "19:50", "20:45", "21:40", "22:35"];
-        const weekendSlots = ["11:00", "11:55", "12:50", "13:45", "14:40", "17:00", "17:55", "18:50", "19:45", "20:40", "21:35", "22:30"];
-
         let selectedTime = "";
         let currentLang = 'ar';
         let selectedDayKey = 'today';
 
         const servicesData = [
-                  { ar: "حلاقة شعر ولحية - 350TL ", tr: "Saç ve Sakal Tıraşı - 350 TL", en: "Haircut & Beard - 350 TL", val: "حلاقة شعر ولحية", price: "350" },
-                  { ar: "حلاقة شعر - 250TL ", tr: "Saç Tıraşı - 250 TL", en: "Haircut - 250 TL", val: "حلاقة شعر", price: "250" },
-                  { ar: "حلاقة لحية - 150TL ", tr: "Sakal Tıraşı - 150 TL", en: "Beard Trim - 150 TL", val: "حلاقة لحية", price: "150" }
-];
+            { ar: "حلاقة شعر ولحية - 350 ل.ت", tr: "Saç ve Sakal Tıraşı - 350 TL", en: "Haircut & Beard - 350 TL", val: "حلاقة شعر ولحية", price: "350" },
+            { ar: "حلاقة شعر - 250 ل.ت", tr: "Saç Tıraşı - 250 TL", en: "Haircut - 250 TL", val: "حلاقة شعر", price: "250" },
+            { ar: "حلاقة لحية - 150 ل.ت", tr: "Sakal Tıraşı - 150 TL", en: "Beard Trim - 150 TL", val: "حلاقة لحية", price: "150" }
+        ];
 
         const siteTranslations = {
             ar: {
@@ -216,13 +213,13 @@
                 nameLabel: "الاسم الكامل *",
                 namePlaceholder: "أدخل اسمك الكريم",
                 phoneLabel: "رقم الهاتف (05XXXXXXXX) *",
-                notesLabel: "ملاحظات أو تفاصيل القصة (اختياري)...",
-                notesPlaceholder: "أي تفاصيل إضافية تحب أن تعرفني بها...",
+                notesLabel: "رقم الغرفة أو ملاحظات (مهم)...",
+                notesPlaceholder: "اكتب رقم غرفتك هنا...",
                 statusGridLabel: "حالة المواعيد المباشرة:",
                 refreshBtn: "🔄 تحديث المواعيد",
                 modalTitle: "🎉 تم تثبيت حجزك بنجاح!",
                 modalDetails: (name, sName, dayLbl, time) => `تم تثبيت حجزك بنجاح! شكراً ${name}، تم تسجيل حجزك لـ (${sName}) ليوم ${dayLbl} على الساعة ${time}.`,
-                whatsappDetails: (name, sName, dayLbl, time, phone, notes) => `مرحباً شاكر، تم تثبيت حجزك بنجاح!\n\n👤 الاسم: ${name}\n📞 الرقم: ${phone}\n✂️ الخدمة: ${sName}\n📅 التاريخ: ${dayLbl}\n⏰ الوقت: ${time}\n` + (notes ? `📝 ملاحظات: ${notes}` : ''),
+                whatsappDetails: (name, sName, dayLbl, time, phone, notes) => `مرحباً شاكر، تم تثبيت حجزك بنجاح!\n\n👤 الاسم: ${name}\n📞 الرقم: ${phone}\n✂️ الخدمة: ${sName}\n📅 التاريخ: ${dayLbl}\n⏰ الوقت: ${time}\n` + (notes ? `📝 رقم الغرفة / ملاحظات: ${notes}` : ''),
                 whatsappBtn: "💬 إرسال التفاصيل عبر الواتساب",
                 closeModal: "إغلاق النافذة",
                 booked: "محجوز",
@@ -250,13 +247,13 @@
                 nameLabel: "Ad Soyad *",
                 namePlaceholder: "Adınızı giriniz",
                 phoneLabel: "Telefon Numarası (05XXXXXXXX) *",
-                notesLabel: "Notlar veya saç modeli detayı (isteğe bağlı)...",
-                notesPlaceholder: "Eklemek istediğiniz detaylar...",
+                notesLabel: "Oda numaranız veya notlar...",
+                notesPlaceholder: "Oda numaranızı yazınız...",
                 statusGridLabel: "Canlı Randevu Durumu:",
                 refreshBtn: "🔄 Randevuları Güncelle",
                 modalTitle: "🎉 Randevunuz Başarıyla Alındı!",
                 modalDetails: (name, sName, dayLbl, time) => `Rezervasyonunuz başarıyla onaylandı! Teşekkürler ${name}, (${sName}) için ${dayLbl} saat ${time} için randevunuz kaydedildi.`,
-                whatsappDetails: (name, sName, dayLbl, time, phone, notes) => `Merhaba Shaker, randevunuz başarıyla onaylandı!\n\n👤 Ad Soyad: ${name}\n📞 Telefon: ${phone}\n✂️ Hizmet: ${sName}\n📅 Tarih: ${dayLbl}\n⏰ Saat: ${time}\n` + (notes ? `📝 Notlar: ${notes}` : ''),
+                whatsappDetails: (name, sName, dayLbl, time, phone, notes) => `Merhaba Shaker, randevunuz başarıyla onaylandı!\n\n👤 Ad Soyad: ${name}\n📞 Telefon: ${phone}\n✂️ Hizmet: ${sName}\n📅 Tarih: ${dayLbl}\n⏰ Saat: ${time}\n` + (notes ? `📝 Oda No / Notlar: ${notes}` : ''),
                 whatsappBtn: "💬 Detayları WhatsApp ile Gönder",
                 closeModal: "Pencereyi Kapat",
                 booked: "Dolu",
@@ -284,13 +281,13 @@
                 nameLabel: "Full Name *",
                 namePlaceholder: "Enter your full name",
                 phoneLabel: "Phone Number (05XXXXXXXX) *",
-                notesLabel: "Notes or haircut details (optional)...",
-                notesPlaceholder: "Any additional details...",
+                notesLabel: "Room number or notes...",
+                notesPlaceholder: "Enter your room number...",
                 statusGridLabel: "Live Schedule Status:",
                 refreshBtn: "🔄 Refresh Slots",
                 modalTitle: "🎉 Booking Confirmed Successfully!",
                 modalDetails: (name, sName, dayLbl, time) => `Your booking has been confirmed! Thank you ${name}, your booking for (${sName}) on ${dayLbl} at ${time} has been saved.`,
-                whatsappDetails: (name, sName, dayLbl, time, phone, notes) => `Hello Shaker, your booking has been confirmed!\n\n👤 Name: ${name}\n📞 Phone: ${phone}\n✂️ Service: ${sName}\n📅 Date: ${dayLbl}\n⏰ Time: ${time}\n` + (notes ? `📝 Notes: ${notes}` : ''),
+                whatsappDetails: (name, sName, dayLbl, time, phone, notes) => `Hello Shaker, your booking has been confirmed!\n\n👤 Name: ${name}\n📞 Phone: ${phone}\n✂️ Service: ${sName}\n📅 Date: ${dayLbl}\n⏰ Time: ${time}\n` + (notes ? `📝 Room / Notes: ${notes}` : ''),
                 whatsappBtn: "💬 Send Details via WhatsApp",
                 closeModal: "Close Window",
                 booked: "Booked",
@@ -407,13 +404,10 @@
             grid.innerHTML = "<p class='col-span-3 text-xs text-gray-500 py-2'>...</p>";
             statusGrid.innerHTML = "";
 
-            const d = new Date(dateVal);
-            const isWeekend = (d.getDay() === 0 || d.getDay() === 6);
-            const activeSlots = isWeekend ? weekendSlots : regularSlots;
-
             try {
                 const res = await fetch(`/api/availability/${dateVal}`);
                 const data = await res.json();
+                const activeSlots = data.available_slots || [];
                 grid.innerHTML = "";
 
                 if (data.is_blocked) {
@@ -466,7 +460,7 @@
                 });
 
                 if (!activeSlots.includes(selectedTime) || isSlotPassedOrTooSoon(selectedTime, dateVal) || data.booked_times.includes(selectedTime) || (data.blocked_slots && data.blocked_slots.includes(selectedTime))) {
-                    selectedTime = firstAvailableSlot || activeSlots[0];
+                    selectedTime = firstAvailableSlot || activeSlots[0] || "";
                 }
 
                 updateSummary();
@@ -509,8 +503,8 @@
             const clientNameVal = document.getElementById("clientName").value;
             const bookingDateVal = document.getElementById("bookingDate").value;
 
-            if (isSlotPassedOrTooSoon(selectedTime, bookingDateVal)) {
-                alert("عذراً، هذا الموعد فات وقته أو اقترب جداً ولا يمكن حجزه!");
+            if (!selectedTime || isSlotPassedOrTooSoon(selectedTime, bookingDateVal)) {
+                alert("عذراً، هذا الموعد غير متاح أو فات وقته!");
                 return;
             }
 
