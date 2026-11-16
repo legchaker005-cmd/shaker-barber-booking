@@ -50,7 +50,7 @@ class WorkingHourRequest(BaseModel):
 # Admin PIN Verification (4628)
 def verify_admin_pin(x_admin_pin: str = Header(None)):
     pin = str(x_admin_pin).strip() if x_admin_pin else ""
-    if pin != "4628":
+    if pin != "6482":
         raise HTTPException(status_code=401, detail="رمز PIN غير صحيح!")
     return True
 
